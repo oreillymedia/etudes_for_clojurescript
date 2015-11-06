@@ -1,0 +1,525 @@
+<section data-type="chapter" id="chapter04">
+<h1>Maps</h1>
+
+<p>
+In this chapter, you will work with maps (not to be confused with the 
+<code>map</code> function, though you can use <code>map</code> on a map). Also, 
+the études are designed to run on the server side with <a 
+href="https://nodejs.org/">Node.js&#174;</a>, so you may want to see how to set that 
+up in <a href="#appendix_server_cljs" data-type="xref">#appendix_server_cljs</a>.
+</p>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <section data-type="sect1" id="ETUDE04-01">
+  <h1>Étude 4-1: Condiments</h1>
+  <p>
+  If you spend some time going through open datasets such as those form <a href="http://www.data.gov/">data.gov</a>, you will find some fairly, shall we say, esoteric data. Among them is <a href="http://catalog.data.gov/dataset/mypyramid-food-raw-data-f9ed6">MyPyramid Food Raw Data</a> from the Food and Nutrition Service of the United States Department of Agriculture.
+  </p>
+  
+  <p>
+  One of the files is <em>Foods_Needing_Condiments_Table.xml</em>, which gives a list of foods and condiments that go with them. Here is what part of the file looks like, indented and edited to eliminate unnecessary elements, and placed in a file named <em>test.xml</em>.
+  </p>
+  
+<pre>&lt;Foods_Needing_Condiments_Table&gt;
+  &lt;Foods_Needing_Condiments_Row&gt;
+    &lt;Survey_Food_Code&gt;51208000&lt;/Survey_Food_Code&gt;
+    &lt;display_name&gt;100% Whole Wheat Bagel&lt;/display_name&gt;
+    &lt;cond_1_name&gt;Butter&lt;/cond_1_name&gt;
+    &lt;cond_2_name&gt;Tub margarine&lt;/cond_2_name&gt;
+    &lt;cond_3_name&gt;Reduced calorie spread (margarine type)&lt;/cond_3_name&gt;
+    &lt;cond_4_name&gt;Cream cheese (regular)&lt;/cond_4_name&gt;
+    &lt;cond_5_name&gt;Low fat cream cheese&lt;/cond_5_name&gt;
+  &lt;/Foods_Needing_Condiments_Row&gt;
+  &lt;Foods_Needing_Condiments_Row&gt;
+    &lt;Survey_Food_Code&gt;58100100&lt;/Survey_Food_Code&gt;
+    &lt;display_name&gt;"Beef burrito (no beans):"&lt;/display_name&gt;
+    &lt;cond_1_name&gt;Sour cream&lt;/cond_1_name&gt;
+    &lt;cond_2_name&gt;Guacamole&lt;/cond_2_name&gt;
+    &lt;cond_3_name&gt;Salsa&lt;/cond_3_name&gt;
+  &lt;/Foods_Needing_Condiments_Row&gt;
+  &lt;Foods_Needing_Condiments_Row&gt;
+    &lt;Survey_Food_Code&gt;58104740&lt;/Survey_Food_Code&gt;
+    &lt;display_name&gt;Chicken &amp; cheese quesadilla:&lt;/display_name&gt;
+    &lt;cond_1_name&gt;Sour cream&lt;/cond_1_name&gt;
+    &lt;cond_2_name&gt;Guacamole&lt;/cond_2_name&gt;
+    &lt;cond_3_name&gt;Salsa&lt;/cond_3_name&gt;
+  &lt;/Foods_Needing_Condiments_Row&gt;
+&lt;/Foods_Needing_Condiments_Table&gt;</pre>
+
+  <p>
+  Your task, in this étude, is to take this XML file and build a ClojureScript map whose keys are the condiments and whose values are vectors of foods that go with those condiments. Thus, for the sample file, running the program from the command line the output would be this map (formatted and quotemarked for ease of reading):
+  </p>
+  
+  <pre>[etudes@localhost nodetest]$ node condiments.js test.xml
+{"Butter" ["100% Whole Wheat Bagel"],
+"Tub margarine" ["100% Whole Wheat Bagel"],
+"Reduced calorie spread (margarine type)" ["100% Whole Wheat Bagel"],
+"Cream cheese (regular)" ["100% Whole Wheat Bagel"],
+"Low fat cream cheese" ["100% Whole Wheat Bagel"],
+"Sour cream" ["Beef burrito (no beans):" "Chicken &amp; cheese quesadilla:"],
+"Guacamole" ["Beef burrito (no beans):" "Chicken &amp; cheese quesadilla:"],
+"Salsa" ["Beef burrito (no beans):" "Chicken &amp; cheese quesadilla:"]}</pre>
+
+    <section data-type="sect2" id="parse-xml">
+    <h2>Parsing XML</h2>
+    <p>
+    How do you parse XML using Node.js? Install the <code>node-xml-lite</code> module:
+    </p>
+  
+    <pre>[etudes@localhost ~]$ <strong>npm install node-xml-lite</strong>
+npm http GET https://registry.npmjs.org/node-xml-lite
+npm http 304 https://registry.npmjs.org/node-xml-lite
+npm http GET https://registry.npmjs.org/iconv-lite
+npm http 304 https://registry.npmjs.org/iconv-lite
+node-xml-lite@0.0.3 node_modules/node-xml-lite
+└── iconv-lite@0.4.8</pre>
+
+    <p>
+    Bring the XML parsing module into your <em>core.cljs</em> file:
+    </p>
+    
+    <pre>(def xml (js/require "node-xml-lite"))</pre>
+    
+    <p>
+    The following code will parse an XML file and return a JavaScript object:
+    </p>
+    
+    <pre>(.parseFileSync xml "test.xml")</pre>
+    
+    <p>
+    And here is the JavaScript object that it produces:
+    </p>
+    
+  <pre>
+  {:name "Foods_Needing_Condiments_Table", :childs [
+    {:name "Foods_Needing_Condiments_Row", :childs [
+      {:name "Survey_Food_Code", :childs ["51208000"]}
+      {:name "display_name", :childs ["100% Whole Wheat Bagel"]}
+      {:name "cond_1_name", :childs ["Butter"]}
+      {:name "cond_2_name", :childs ["Tub margarine"]}
+      {:name "cond_3_name", :childs ["Reduced calorie spread (margarine type)"]}
+      {:name "cond_4_name", :childs ["Cream cheese (regular)"]}
+      {:name "cond_5_name", :childs ["Low fat cream cheese"]}
+    ]}
+    {:name "Foods_Needing_Condiments_Row", :childs [
+      {:name "Survey_Food_Code", :childs ["58100100"]}
+      {:name "display_name", :childs ["Beef burrito (no beans):"]}
+      {:name "cond_1_name", :childs ["Sour cream"]}
+      {:name "cond_2_name", :childs ["Guacamole"]}
+      {:name "cond_3_name", :childs ["Salsa"]}
+    ]}
+    {:name "Foods_Needing_Condiments_Row", :childs [
+      {:name "Survey_Food_Code", :childs ["58104740"]}
+      {:name "display_name", :childs ["Chicken &amp; cheese quesadilla:"]}
+      {:name "cond_1_name", :childs ["Sour cream"]}
+      {:name "cond_2_name", :childs ["Guacamole"]}
+      {:name "cond_3_name", :childs ["Salsa"]}
+    ]}
+  ]}</pre>
+    </section>
+  
+    <section data-type="sect2" id="command-line-options">
+    <h2>Command Line Arguments</h2>
+    <p>
+    While you can hard-code the XML file name into your program, it makes the program less flexible. It would be much nicer if (as in the description of the étude) you could specify the file name to process on the command line.
+    </p>
+    <p>
+    To get command line arguments, use the <code>arg</code> property of the global <code>js/process</code> variable. Element 0 is <code>"node"</code>, element 1 is the name of the JavaScript file, and element 2 is where your command line arguments begin. Thus, you can get the file name with:
+    </p>
+    
+    <pre>(nth (.-argv js/process) 2)</pre>
+    </section>
+    
+    <section data-type="sect2" id="mutual-recursion">
+    <h2>Mutually Recursive Functions</h2>
+  
+    <p>
+    While writing my solution, I had two separate functions: <code>process-children</code>, which iterated through all the <code>childs</code>. calling function <code>process-child</code> for each of them. However, a child element could itself have children, so <code>process-child</code> had to be able to call <code>process-children</code>. The term for this sort of situtation is that you have <em>mutually recursive functions</em>. Here’s the problem: ClojureScript requires you to define a function before you can use it, so you would think that you can’t have mutually recursive functions. Luckily, the inventor of Clojure foresaw this sort of situation and created the <code>declare</code> form that lets you declare a symbol that you will define later.  Thus, I was able to write code like this:
+    </p>
+  
+    <pre>(declare process-child)
+  
+(defn process-children [...]
+   (process-child ...))
+
+(defn process-child [...]
+   (process-children ...))</pre>
+    
+    <p>
+    Just because I used mutually recursive functions to solve the problem doesn’t mean you have to. If you can find a way to do it with a single recursive function, go for it. I was following the philosophy of “the first way you think of doing it that works is the right way.”
+    </p>
+    </section>
+    
+  <p>
+  There’s a lot of explanation in this étude, and you are probably thinking this is going to be a huge program. It sure seemed that way to me while I was writing it, but it turned that was mostly because I was doing lots of tests in the REPL and looking things up in documentation. When I looked at the resulting program, it was only 45 lines. Here it is: <a href="#SOLUTION04-ET01" 
+data-type="xref">#SOLUTION04-ET01</a>.
+
+  </p>
+  </section>
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <section data-type="sect1" id="ETUDE04-02">
+  <h1>Étude 4-2: Condiment Server</h1>
+  <p>
+  Now that you have the map from the previous étude, what can you do with it? Well, how many times have you been staring at that jar of mustard and asking yourself “What food would go well with this?” This étude will cure that indecision once and for all. You will write a server using <a href="http://expressjs.com/">Express</a>, which, as the web site says, is a “minimalist web framework for Node.js.” <a href="http://www.mase.io/code/clojure/node/2015/01/25/clojurescript-and-node-part-2-express/">This article about using ClojureScript and Express</a> was very helpful when I was first learning about the subject; I strongly suggest you read it.
+  </p>
+  
+  <p>
+  Let’s set up a simple server that you can use as a basis for this étude. The server presents a form with an input field for the user's name. When the user clicks the submit button,  the data is submitted back to the server and it echoes back the form and a message: “Pleased to meet you, <em>username</em>.”
+   </p>
+  
+    <section id="setup-express" data-type="sect2">
+    <h2>Setting up Express</h2>
+    <p>You will need to do the following:</p>
+    
+    <ul>
+    <li>Add <code>[express "4.11.1"]</code> to the <code>:node-dependencies</code> in your
+    <em>project.clj</em> file.</li>
+    <li>Add <code>(def express (nodejs/require "express"))</code> in your <em>core.cljs</em> file</li>
+    <li>Make your <code>main</code> function look like this:
+    
+<pre>(defn -main []
+  (let [app (express)]
+    (.get app "/" generate-page!)
+    (.listen app 3000
+             (fn []
+               (println "Server started on port 3000")))))</pre>
+               
+      <p>
+      This starts a server on port 3000, and when it receives a <code>get</code> request, calls the <code>generate-page!</code> function. (You can also set up the server to accept <code>post</code> requests and route them to other URLS than the server root, but that is beyond the scope of this book.)
+      </p>
+      </li>
+      </ul>
+    </section>
+    
+    <section data-type="sect2" id="dynamic-html">
+    <h2>Generating HTML from ClojureScript</h2>
+    <p>
+    To generate the HTML dynamically, you will use the <code>html</code> function of the <a href="https://github.com/teropa/hiccups">hiccups</a> library. The function takes as its argument a vector that has a keyword as an element name, an optional map of attributes and values, and the element content.  Here are some examples:
+      </p>
+      
+      <table>
+        <thead>
+          <tr><th>HTML</th><th>Hiccup</th></tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>&lt;h1&gt;Heading&lt;/h1&gt;</td>
+          <td>(html [:h1 "Heading"])</td>
+        </tr>
+        <tr>
+          <td>&lt;p id="intro"&gt;test&lt;/p&gt;</td>
+          <td>(html [:p {:id "intro"} test])</td>
+        </tr>
+        <tr>
+          <td>&lt;p&gt;Click to &lt;a href="page2.html"&gt;go to page two&lt;/a&gt;.&lt;/p&gt;</td>
+          <td>(html [:p "Click to " [:a {:href "page2.html"} "go to page two"] "."])</td>
+        </tr>
+        </tbody>
+      </table>
+      
+      <p>
+      You add <code>[hiccups "0.3.0"]</code> to your <em>project.clj</em> dependencies and modify your <em>core.cljs</em> file to require hiccups:
+      </p>
+      
+      <pre>(ns servertest.core
+  (:require-macros [hiccups.core :as hiccups])
+  (:require [cljs.nodejs :as nodejs]
+            [hiccups.runtime :as hiccupsrt]))</pre>
+            
+      <p>
+      You are now ready to write the <code>generate-page!</code> function, which has two parameters: the HTTP request that the server received, and the HTTP response that you will send back to the client.  The property <code>(.-query request)</code> is a JavaScript object with the form names as its properties.  Thus, if you have a form entry like this:
+      </p>
+      
+      <pre>&lt;input type="text" name="userName"/&gt;</pre>
+      
+      <p>
+      You would access the value via <code>(.-userName (.-query request))</code>.
+      </p>
+      
+      <p>
+      The <code>generate-page</code> function creates the HTML page as a string to send back to the client; you send it back by calling <code>(.send response <em>html-string</em>)</code>. The HTML page will contain a form whose <code>action</code> URL is the server root (<code>/</code>). The form will have an input area for the user name and a submit button. This will be followed by a paragraph that has the text “Pleased to meet you, <em>user name</em>.” (or an empty paragraph if there's no user name). You can either figure out this code on your own or <a href="#SOLUTION04-ET02A">see a suggested solution</a>. I’m giving you the code here because the purpose of this étude is to process the condiment map in the web page context rather than setting up the web page in the first place. (Of course, I strongly encourage you to figure it out on your own; you will learn a lot&#x2014;I certainly did!)
+      </p>
+      </section>
+      
+      <section data-type="sect2">
+      <h2>Putting the Étude Together</h2>
+      <p>
+      Your program will use the previous étude’s code to build the map of condiments and compatible foods from the XML file. Then use the same framework that was developed in <a href="#dynamic-html" data-type="xref">#dynamic-html</a>, with the generated page containing:
+      </p>
+      
+      <ul>
+      <li>A form with a <code>&lt;select&gt;</code> menu that gives the condiment names (the keys of the map). You may want to add an entry with the text “Choose a condiment” at the beginning of the menu to indicate “no choice yet.” When you create the menu, remember to select the <code>selected="selected"</code> attribute for the current menu choice.</li>
+      <li>A submit button for the form</li>
+      <li>An unordered list that gives the matching foods for that condiment (the value from the map), or an empty list if no condiment has been chosen.</li>
+      </ul>
+      
+      <p>
+      Your code should alphabetize the condiment names and compatible foods. Some of the foods begin with capital letters; others with lower case. You will want to do a case-insensitive form. (Hint: use the form of <code>sort</code> that takes a comparison function.) 
+      </p>
+      
+      <p>See a suggested solution:  <a href="#SOLUTION04-ET02B" data-type="xref">#SOLUTION04-ET02B</a>. To make the program easier to read, I put the code for creating the map into a separate file with its own namespace.</p>
+      
+      </section>
+    </section>
+    
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <section data-type="sect1" id="ETUDE04-03">
+  <h1>Étude 4-3: Maps&#x2014;Frequency Table</h1>
+  <p>
+  This étude uses an excerpt of the Montgomery County, Maryland (USA) traffic violation database, which you may find <a href="http://catalog.data.gov/dataset/traffic-violations-56dda">at this URL</a>. I have taken only the violations for July 2014, removed several of the columns of the data, and put the result into a TAB-separated value file named <em>traffic_july_2014_edited.csv</em>, which you may find <a href="https://github.com/jdeisenberg/etudes-for-clojurescript">in the GitHub repository</a>. (Yes, I know CSV should be comma-separated, but using TAB makes life much easier.)
+  </p>
+  
+  <p>
+  Here are the column headings:
+  </p>
+  
+  <ul>
+  <li>Date Of Stop, in format <em>mm</em>/<em>dd</em>/<em>yyyy</em></li>
+  <li>Time Of Stop, in format <em>hh</em>:<em>mm</em>:<em>ss</em></li>
+  <li>Description</li>
+  <li>Accident (Yes/No)</li>
+  <li>Personal Injury (Yes/No)</li>
+  <li>Property Damage (Yes/No)</li>
+  <li>Fatal (Yes/No)</li>
+  <li>State (two-letter abbreviation)</li>
+  <li>Vehicle Type</li>
+  <li>Year</li>
+  <li>Make</li>
+  <li>Model</li>
+  <li>Color</li>
+  <li>Violation Type (Warning / Citation / ESERO [Electronic Safety Equipment Repair Order])</li>
+  <li>Charge (Maryland Government traffic code section)</li>
+  <li>Race</li>
+  <li>Gender</li>
+  <li>Driver State (two-letter abbreviation)</li>
+  <li>Driver’s License State (two-letter abbreviation)</li>
+  </ul>
+
+  <p>
+  As you can see, you have a treasure trove of data here. For example, one reason I chose July is that I was interested in seeing if the number of traffic violations was greater around the July 4th holiday (in the United States) than during the rest of the month.
+  </p>
+  
+  <p>
+  If you look at the data, you will notice the “Make” (vehicle manufacturer) column would need some cleaning up to be truly useful. For example, there are entries such as TOYOTA, TOYT, TOYO, and TOUOTA. Various other creative spellings and abbreviations abound in that column. Also, the Scion is listed as both a make and a model. Go figure.
+  </p>
+  
+  <p>
+  In this étude, you are going to write a Node.js project named <em>frequency</em> It will contain a function that reads the CSV file and creates a data structure (I suggest a vector of maps) for each row.  For example:
+  </p>
+<pre>[{:date "07/31/2014", :time "22:08:00" ... :gender "F", :driver-state "MD"},
+  {:date "07/31/2014", :time "21:27:00" ... :gender "F", :driver-state "MD"}, ...]</pre>
+    
+  <p>
+  Hints:
+  </p>
+  
+  <ul>
+  <li>For the map, define a vector of heading keywords, such as:
+    <pre data-type="programlisting" data-code-language="clojurescript">(def headings [:date :time ... :gender :driver-state])</pre>
+    If there are columns you don’t want or need in the map, enter <code>nil</code> in the vector.</li>
+  <li>Use <code>zipmap</code> to make it easy to construct a map for each row. You will have to get rid of the <code>nil</code> entry; <code>dissoc</code> is your friend here.</li>
+  </ul>
+  
+  <p>
+  You will then write a function named <code>frequency-table</code> with two parameters: 
+  </p>
+     <ol>
+      <li>The data structure from the CSV file</li>
+      <li>A column specifier</li>
+    </ol>
+  <p>
+  You can take advantage of ClojureScript’s higher order functions here. The specifier is a function that takes one entry (a “row”) in the data structure and returns a value. So, if you wanted a frequency table to figure out how many violations there are in each hour of the day, you would write code like this:
+  </p>
+   
+<pre data-type="programlisting" data-code-language="clojurescript">(defn hour [csv-row]
+  (.substr (csv-row :time) 0 2))
+
+(defn frequency-table [all-data col-spec]
+  ;; your code here
+)
+  
+;; now you do a call like this:
+(frequency-table traffic-data hour)</pre>
+
+  <p>
+  Note that, because keyword access to maps works like a function, you could get the frequency of genders by doing this call:
+  </p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(frequency-table traffic-data :gender true)</pre>
+  <p>
+  The return value from <code>frequency-table</code> will be a vector that consists of:
+  </p>
+  <ul>
+    <li>A vector of labels (the values from the specified column), sorted</li>
+    <li>A vector giving the frequency counts for each label</li>
+    <li>The total count</li>
+  </ul>
+  
+  <p>
+  The return value from the call for gender looks like this: <code>[["F" "M" "U"] [6732 12776 7] 19515]</code>.
+  Hint: Build a map whose keys are labels and whose values are their frequency, then use <code>seq</code>.
+  </p>
+  
+  <p>
+  Here are some frequency tables that might be interesting: Color of car&#x2014;which car colors are most likely to have a violation? Year of car manufacture&#x2014;are older cars more likely to have a violation? (To be sure, there are other factors at work here. Car colors are not equally common, and there are fewer cars on the road that were manufactured in 1987 than were made last year. This étude is meant to teach you to use maps, not to make rigorous, research-ready hypotheses.)
+  </p>
+
+      <section data-type="sect2" id="read-csv-section">
+    <h2>Reading the CSV File</h2>
+    <p>
+    Reading a file one line at a time from Node.js is a non-trivial matter. Luckily for you and me, Jonathan Boston (twitter/github: <a href="https://github.com/bostonou">bostonou</a>), author of the <a href="clojurescriptmadeeasy.com">ClojureScript Made Easy</a> blog <a href="http://clojurescriptmadeeasy.com/blog/cljs-read-files-line-by-line-on-nodejs-part-2.html">posted a wonderful solution</a> just days before I wrote this étude. He has kindly given me permission to use the code, which you can get <a href="https://gist.github.com/bostonou/a54c029fa6f29459eafe">at this GitHub gist</a>. Follow the instructions in the gist, and separate the Clojure and ClojureScript code. Your <em>src</em> directory will look like this:
+    </p>
+<pre>src
+├── cljs_made_easy
+│   ├── line_seq.clj
+│   └── line_seq.cljs
+└── traffic
+    └── core.cljs</pre>
+    
+    <p>
+    Inside the <em>core.cljs</em> file, you will have these requirements:
+    </p>
+    
+<pre data-type="programlisting" data-code-language="clojurescript">(ns traffic.core
+  (:require [cljs.nodejs :as nodejs]
+            [clojure.string :as str]
+            [cljs-made-easy.line-seq :as cme]))
+ 
+(def filesystem (js/require "fs")) ;;require nodejs lib</pre>
+
+    <p>
+    You can then read a file like this, using <code><a href="http://clojuredocs.org/clojure.core/with-open">with-open</a></code> and <code><a href="http://clojuredocs.org/clojure.core/line-seq">line-seq</a></code> very much as they are used in Clojure. In the following code, the call to <code>.openSync</code> has three arguments: the filesystem defined earlier, the file name, and the file mode, with <code>"r"</code> for reading.
+    </p>
+    
+<pre data-type="programlisting" data-code-language="clojurescript">(defn example [filename]
+  (cme/with-open [file-descriptor (.openSync filesystem filename "r")]
+             (println (cme/line-seq file-descriptor))))</pre>
+     <p>
+     Note: You may want to use a smaller version of the file for testing. The code repository contains a file named <em>small_sample.csv</em> with 14 entries.
+     </p>
+     </section>        
+     
+    <p>
+    See a suggested solution: <a href="#SOLUTION04-ET03" data-type="xref">#SOLUTION04-ET03</a>.
+    </p>
+    </section>
+    
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <section data-type="sect1" id="ETUDE04-04">
+  <h1>Étude 4-4: Complex Maps&#x2014;Cross-tabulation</h1>
+  <p>
+  Add to the previous étude by writing a function named <code>cross-tab</code>; it creates frequency cross-tabluations. It has these parameters:
+  </p>
+    <ol>
+      <li>The data structure from the CSV file</li>
+      <li>A row specifier</li>
+      <li>A column specifier</li>
+    </ol>
+  <p>
+  Again, the row and column specifiers are functions. So, if you wanted a cross-tabulation with hour of day as the rows and gender as the columns, you might write code like this:
+  </p>
+   
+<pre data-type="programlisting" data-code-language="clojurescript">(defn hour [csv-row]
+  (.substr (csv-row :time) 0 2))
+  
+(defn cross-tab [all-data row-spec col-spec]
+  ;; your code here
+  )
+  
+;; now you do a call like this:
+(crosstab traffic-data hour :gender)</pre>
+
+  <p>
+  The return value from <code>cross-tab</code> will be a vector that consists of:
+  </p>
+  <ul>
+    <li>A vector of row labels, sorted</li>
+    <li>A vector of column labels, sorted</li>
+    <li>A vector of vectors that gives the frequency counts for each row and column</li>
+    <li>A vector of row totals</li>
+    <li>A vector of column totals</li>
+  </ul>
+  
+  <p>
+  The previous search on the full data set returns this result, reformatted to avoid excessively long lines:
+  </p>
+ 
+<pre>(cross-tab traffic-data hour :gender)
+[["00" "01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12"
+"13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "23"] ["F" "M" "U"]
+[[335 719 0] [165 590 0] [141 380 0] [96 249 0] [73 201 0] [63 119 0]
+[129 214 2] [380 625 0] [564 743 1] [481 704 0] [439 713 1] [331 527 0]
+[243 456 0] [280 525 0] [344 515 0] [276 407 0] [307 514 1] [317 553 0]
+[237 434 1] [181 461 0] [204 553 1] [289 657 0] [424 961 0] [433 956 0]]
+[1054 755 521 345 274 182 345 1005 1308 1185 1153 858 699 805 859 683
+822 870 672 642 758 946 1385 1389] [6732 12776 7] 19515]</pre>
+
+  <p>
+  Here are some of the cross-tabulations that might be interesting:
+  </p>
+  
+    <ul>
+      <li>Day by hour. The marginal totals will tell you which days and hours have the most violations. Are the days around 4 July 2014 (a US holiday) more active than other days? Which hours are the most and least active?</li>
+      <li>Gender by Color of vehicle (although the driver might not be the person who purchased the car)</li>
+      <li>Driver’s state by Property Damage&#x2014;are out-of-state drivers more likely to damage property than an in-state driver?</li>
+    </ul>
+  
+    <p>
+    Bonus points: write the code such that if you give <code>cross-tab</code> a <code>nil</code> for the column specifier, it will still work, returning only the totals for the row specifier. Then, re-implement <code>frequency-table</code> by calling <code>cross-tab</code> with <code>nil</code> for the column specifier. Hint: You will have to take the vector of vectors for the  “cross-tabulation” totals and make it a simple vector. Either <code>map</code> or <code>flatten</code> will be useful here.
+    </p>
+    
+    <p>
+    See a suggested solution: <a href="#SOLUTION04-ET04" data-type="xref">#SOLUTION04-ET04</a>.
+    </p>
+    </section>
+    
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <section data-type="sect1" id="ETUDE04-05">
+  <h1>Étude 4-5: Cross-Tabulation Server</h1>
+  <p>
+  Well, as you can see, the output from the previous étude is ugly to the point of being nearly unreadable. This rather open-ended étude aims to fix that. Your mission, should you decide to accept it, is to set up the code in an Express server to deliver the results in a nice, readable HTML table. Here are some of the things I found out while coming up with a solution, a screenshot of which appears in <a href="#traffic_example_figure" data-type="xref">#traffic_example_figure</a>. 
+  </p>
+
+  <figure id="traffic_example_figure">
+<img src="images/traffic_example.png" alt="Screenshot showing traffic "/>
+<figcaption>Screenshot of Traffic Cross-Tabulation Table</figcaption>
+</figure>
+
+  <ul>
+    <li><p>
+    I wanted to use as much of the code from <a href="ETUDE04-02" data-type="xref">#ETUDE04-02</a> as possible, so I decided on drop-down menus to choose the fields. However, a map was not a good choice for generating the menu. In the condiment server, it made sense to alphabetize the keys of the food map. In this étude, the field names are listed by conceptual groups; it doesn't make sense to alphabetize them, and the keys of a map are inherently unordered. Thus, I ended up making a vector of vectors.
+    </p></li>
+    
+    <li><p>
+    I used <code><a href="http://clojuredocs.org/clojure.core/map-indexed">map-indexed</a></code> to create the option menu such that each option had a numeric value. However, when the server reads the value from the request, it gets a string, and <code>5</code> is not equal to <code>"5"</code>. The fix was easy, but I lost a few minutes figuring out why my selected item wasn’t coming up when I came back from a request.
+    </p></li>
+    
+    <li><p>
+    The source file felt like it was getting too big, so I put the cross tabulation code into a separate file named <em>crosstab.cljs</em> in the <em>src/traffic</em> directory.
+    </p></li>
+    
+    <li><p>
+    I wanted to include a CSS file, so I put the specification in the header of the hiccups code. However, to make it work, I had to tell Express how to serve static files, using <code>"."</code> for the root directory in:
+    </p> 
+    <pre data-type="programlisting" data-code-language="clojurescript">(.use app (.static express "<em>path/to/root/directory</em>"))</pre>
+    </li>
+    
+    <li><p>
+    Having the REPL is really great for testing.
+    </p></li>
+    
+    <li><p>
+    I finished the program late at night. Again, “the first way you think of doing it that works is the right way,” but I am unhappy with the solution. I would really like to unify the cases of one-dimensional and two-dimensional tables, and there seems to be a dreadful amount of unnecessary duplication. To paraphrase Don Marquis, my solution “isn’t moral, but it might be expedient.”
+    </p></li>
+  </ul>
+  <p>
+  See a suggested solution (which I put in a project named <em>traffic</em>): <a href="#SOLUTION04-ET05" data-type="xref">#SOLUTION04-ET05</a>.
+  </p>
+  </section>
+
+</section>

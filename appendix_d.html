@@ -1,0 +1,102 @@
+<section data-type="appendix" id="appendix_server_cljs">
+<h1>ClojureScript on the Server</h1>
+
+  <section data-type="sect1">
+  <h1>ClojureScript on the Server</h1>
+
+  <p>Just as JavaScript works in the browser and on the server, via a library like <a href="https://nodejs.org">Node.js</a>, so does ClojureScript. In this book I’m using Node.js for the server side.</p>
+
+    <section data-type="sect2" id="getting-node">
+    <h2>Getting Node.js&#174;</h2>
+    <p>
+    You can get Node.js from <a href="https://nodejs.org/download/">the download page</a>. This will also give you <em>npm</em>, Node’s package manager.
+    </p>
+    </section>
+    
+    <section data-type="sect2" id="create-node-project">
+    <h2>Creating a ClojureScript/Node.js Project</h2>
+    <p>
+    I created a project named <em>node-project</em> by following the instructions at the <a href="https://github.com/clojure/clojurescript/wiki/Quick-Start">ClojureScript Quick Start page.</a> (I am sick and tired of “Hello, world!” so I did something slightly different.)
+    </p>
+
+    <p>Here is the file structure of the directory, with files organized by category rather than alphabetical order. Notice that the project name <em>snode-project</em> has a hyphen in it, but when used in a directory name, you replace the hyphen with an underscore: <em>node_project</em>.
+    </p>
+    
+<pre>node_project
+├── cljs.jar
+├── src
+│   └── node_project
+│       └── core.cljs
+└── node.clj</pre>
+
+  <p>
+  The <em>cljs.jar</em> file contains ClojureScript, downloaded from the link at the Quick Start page.
+  </p>
+  </section>
+
+    <section data-type="sect2">
+    <h2>ClojureScript File <em>src/sample_project/core.cljs</em></h2>
+    <p>
+      This is the ClojureScript file for the project; it simply prints to the console.
+    </p>
+
+<pre data-type="programlisting" data-code-language="clojure">(ns node-project.core
+  (:require [cljs.nodejs :as nodejs]))
+
+(nodejs/enable-util-print!)
+
+(defn -main [&amp; args]
+  (println "It works!"))
+
+(set! *main-cli-fn* -main)</pre>
+    </section>
+    
+    <section data-type="sect2">
+    <h2>File <em>node.clj</em></h2>
+    <p>This file builds the unoptimized project.</p>
+
+<pre data-type="programlisting" data-code-language="clojure">(require 'cljs.build.api)
+
+(cljs.build.api/build "src"
+  {:main 'node-project.core
+   :output-to "main.js"
+   :target :nodejs})</pre>
+     </section>
+
+    <section data-type="sect2">
+    <h2>File <em>node_repl.clj</em></h2>
+    <p>
+    This file will build the project and start a REPL.
+    </p>
+<pre data-type="programlisting" data-code-language="clojure">(require 'cljs.repl)
+(require 'cljs.build.api)
+(require 'cljs.repl.node)
+
+(cljs.build.api/build "src"
+  {:main 'hello-world.core
+   :output-to "out/main.js"
+   :verbose true})
+
+(cljs.repl/repl (cljs.repl.node/repl-env)
+  :watch "src"
+  :output-dir "out")</pre>
+    </section>
+
+    <section data-type="sect2" id="integrating-node">
+    <h2>Using Node.js Modules</h2>
+    <p>
+    To use a Node.js module, you need to define a binding for the library via the <code>js/require</code> function. You can then use that binding’s methods and properties in your ClojureScript code. The following is a REPL session that shows the use of the built-in <code>os</code> module.
+    </p>
+    
+<pre>cljs.user=&gt; (in-ns 'node_project.core)
+node_project.core=&gt; (def os (js/require "os"))
+;; much output omitted
+node_project.core=&gt; (.hostname os)
+"localhost.localdomain"
+node_project.core=&gt; (.platform os)
+"linux"
+example.core=&gt; (.-EOL os) ;; this is a property
+"\n"</pre>
+    </section>
+  </section>
+</section>

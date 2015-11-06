@@ -1,0 +1,154 @@
+<section data-type="appendix" id="appendix_leiningen_project">
+<h1>Creating a ClojureScript Project with Leiningen</h1>
+
+<p>
+    Another way to get Clojure is to use <a href="http://leiningen.org/">Leiningen</a>, a tool (as the website puts it) “for automating Clojure projects without setting your hair on fire.” Follow the download instructions at the Leiningen website, and then, as it says, type <code>lein</code>. Leiningen will download the self-install package and you will then be ready to create ClojureScript (and Clojure) projects.
+</p>
+
+<p>
+    Leiningen lets you create projects based on <em>templates</em>. You create a new project with a command of the form <code>lein&#160;new&#160;<em>template-name</em>&#160;<em>project-name</em></code>. There are plenty of templates out there, but the two I’m going to use in this book are the minimal <em>mies</em> template and the more advanced <em>figwheel</em> template.
+</p>
+
+<section data-type="sect1" id="AP_C-MIES">
+<h1>The <em>mies</em> Template</h1>
+<p>
+     Use the <code>git</code> utility to download the latest version and install it:
+</p>
+    
+<pre data-type="programlisting">[etudes@localhost ~]$ <strong>git clone https://github.com/swannodette/mies.git</strong>
+Cloning into 'mies'...
+remote: Counting objects: 524, done.
+remote: Total 524 (delta 0), reused 0 (delta 0), pack-reused 524 
+Receiving objects: 100% (524/524), 48.61 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (217/217), done.
+Checking connectivity... done.
+[etudes@localhost ~]$ <strong>cd mies</strong>
+[etudes@localhost mies]$ <strong>lein install</strong>
+Created /home/etudes/mies/target/lein-template-0.6.0.jar
+Wrote /home/etudes/mies/pom.xml
+Installed jar and pom into local repo.</pre>
+
+    <p>
+    Here is the file structure that came from the command <code>lein&#160;new&#160;mies&#160;example</code>:
+    </p>
+    
+<pre>example
+├── index.html
+├── index_release.html
+├── project.clj
+├── README.md
+├── scripts
+│   ├── brepl
+│   ├── build
+│   ├── compile_cljsc
+│   ├── release
+│   ├── repl
+│   └── watch
+└── src
+    └── example
+        └── core.cljs</pre>
+        
+    <p>
+    The <em>project.clj</em> file contains information about your project’s requirements and dependencies. The <em>scripts</em> directory contains scripts that:
+    </p>
+    
+    <ul>
+      <li>Open a browser REPL (<em>brepl</em>)</li>
+      <li>Build the development version of the project (<em>build</em>)</li>
+      <li>Compile parts of the ClojureScript system so you don’t have to recompile them every time you rebuild the project (<em>compile_cljsc</em>)</li>
+      <li>Build the relase version of the project, which optimizes the compiled JavaScript code (<em>release</em>)</li>
+      <li>Open a <code>node.js</code> REPL (<em>repl</em>)</li>
+      <li>Monitor the source directory and rebuild the project whenever a source file changes (<em>watch</em>)</li>
+    </ul>
+    
+    <p>
+    The <em>core.cljs</em> file will contain your code. For a new project, it looks like this:
+    </p>
+    
+<pre data-type="programlisting" data-code-language="clojure">(ns example.core
+  (:require [clojure.browser.repl :as repl]))
+
+;; (defonce conn
+;;   (repl/connect "http://localhost:9000/repl"))
+
+(enable-console-print!)
+
+(println "Hello world!")</pre>
+
+    <p>
+    The lines beginning with the two semicolons are ClojureScript comments. The commented-out lines enable the browser REPL. You will almost certainly want to uncomment those lines by removing the semicolons.  Then you can, from the main <em>example</em> folder, invoke <em>scripts/compile_cljsc</em>&#x2015;which you need to do only once&#x2015;then build the project with <em>scripts/build</em>, and start the browser REPL with <em>scripts/brepl</em>. All these scripts use Leiningen, which will automatically retrieve any dependencies that your project needs. You will eventually see something like this:
+    </p>
+    
+<pre>[etudes@localhost example]$ <strong>scripts/brepl</strong>
+Compiling client js ...
+Waiting for browser to connect ...
+Watch compilation log available at: out/watch.log
+To quit, type: :cljs/quit
+cljs.user=> </pre>
+    
+    <div data-type="note">
+    <h1>Automatic Compilation</h1>
+    <p>
+    As set up in the <code>mies</code> template, the <code>brepl</code> script keeps track of your <code>src</code> directory, and the project is recompiled whenever a file changes. The results are placed in the file <code>out/watch.log</code>. You can open a separate terminal window and use this command: <code>tail&#xa0;out/watch.log</code> to continuously monitor that file. If you do not want to automatically rebuild, go to the <code>scripts/brepl.clj</code> file and change this line:
+    </p>
+    
+    <pre data-type="programlisting" data-code-language="clojure">{:watch "src"</pre>
+
+    <p>to this, making sure that you put the semicolons <em>after</em> the opening brace:</p>
+    
+    <pre data-type="programlisting" data-code-language="clojure">{ ;; :watch "src"</pre>
+    
+    <p>
+    If you do this, then you must manually recompile files, and compile errors will appear in the REPL window.
+    </p>
+    </div>
+    
+</section>
+
+  <section data-type="sect1" id="AP_C-FIGWHEEL">
+  <h1>The <em>figwheel</em> Template</h1>
+  <p>
+  The <em>figwheel</em> template is designed to make interactive development easy. Here is the file structure that you get from the command <code>lein&#160;new&#160;figwheel&#160;example2</code>
+  </p>
+
+<pre>example2
+├── .gitignore
+├── project.clj
+├── README.md
+├── resources
+│   └── public
+│       ├── css
+│       │   └── style.css
+│       └── index.html
+└── src
+    └── example2
+        └── core.cljs</pre>
+        
+  <p>
+  The <em>project.clj</em> file contains the information about your project’s requirements and dependencies. Your code goes in the <em>core.cljs</em> file. To compile and run the code,
+  open a terminal window and type <code>lein&#160;figwheel</code>, then go to <code>http://localhost:3449</code> in your browser. You will have a REPL prompt in the terminal
+  window, and figwheel will monitor your source directory for changes.
+  </p>
+  
+  <p>
+   <a href="#figwheel_compile_figure" data-type="xref">#figwheel_compile_figure</a> shows the result of a good compile after making a change to the <em>core.cljs</em> file; <a href="#figwheel_error_figure" data-type="xref">#figwheel_error_figure</a> shows the result of a compile error. Notice that
+   figwheel points out the line in the ClojureScript file where the error occurred.
+   </p>
+   
+   <figure id="figwheel_compile_figure">
+   <img src="images/figwheel1.png" alt="Screenshot of good compile"/>
+   <figcaption>Screenshot of Result of Good Compilation</figcaption>
+   </figure>
+
+   <figure id="figwheel_error_figure">
+   <img src="images/figwheel2.png" alt="Screenshot of bad compile"/>
+   <figcaption>Screenshot of Result of Error in Compilation</figcaption>
+   </figure>
+
+      <p>
+    This is not to say that <em>mies</em> and <em>figwheel</em> are the only templates you can use; a search for <em>clojurescript template</em> at <a href="https://clojars.org/">https://clojars.org/</a> will produce a whole list of templates with varying purposes. Choose whichever works best for you.
+    </p>
+
+</section>
+</section>
+

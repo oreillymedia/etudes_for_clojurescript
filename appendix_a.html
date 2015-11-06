@@ -1,0 +1,2287 @@
+<section data-type="appendix" id="appendix-solutions">
+<h1>Solutions</h1>
+
+<p>
+Here are suggested solutions for the études. Of course, your solutions may well be entirely different, and better.
+</p>
+
+  <section data-type="sect1" id="SOLUTION01-ET02">
+  <h1>Solution 1-2</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns formulas.core
+  (:require [clojure.browser.repl :as repl]))
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(enable-console-print!)
+
+(defn distance
+  "Calculate distance traveled by an object moving
+  with a given acceleration for a given amount of time."
+  [accel time]
+  (* accel time time))
+  
+(defn kinetic-energy
+  "Calculate kinetic energy given mass and velocity"
+  [m v]
+  (/ (* m v v) 2.0))
+  
+(defn centripetal
+  "Calculate centripetal acceleration given velocity and radius"
+  [v r]
+  (/ (* v v) r))
+  
+(defn average
+  "Calculate average of two numbers"
+  [a b]
+  (/ (+ a b) 2.0))
+
+(defn variance
+  "Calculate variance of two numbers"
+  [a b]
+  (- (* 2 (+ (* a a) (* b b))) (* (+ a b) (+ a b))))</pre>
+  
+  </section>
+
+  <section data-type="sect1" id="SOLUTION01-ET03">
+  <h1>Solution 1-3</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(def G 6.6784e-11)
+
+(defn gravitational-force
+  "Calculate gravitational force of two objects of
+  mass m1 and m2, with centers of gravity at a distance r"
+  [m1 m2 r]
+  (/ (* G m1 m2) (* r r)))</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION01-ET04">
+  <h1>Solution 1-4</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(defn monthly-payment
+  "Calculate monthly payment on a loan of amount p,
+  with annual percentage rate apr, and a given number of years"
+  [p apr years]
+  (let [r (/ apr 12.0)
+        n (* years 12)
+        factor (.pow js/Math (+ 1 r) n)]
+    (* p (/ (* r factor) (- factor 1)))))</pre>
+  </section>
+
+ <section data-type="sect1" id="SOLUTION01-ET05">
+  <h1>Solution 1-5</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(defn radians
+  "Convert degrees to radians"
+  [degrees]
+  (* (/ (.-PI js/Math) 180) degrees))
+
+(defn daylight
+  "Find minutes of daylight given latitude in degrees and day of year.
+  Formula from http://mathforum.org/library/drmath/view/56478.html"
+  [lat-degrees day]
+  (let [lat (radians lat-degrees)
+        part1 (* 0.9671396 (.tan js/Math (* 0.00860 (- day 186))))
+        part2 (.cos js/Math (+ 0.2163108 (* 2 (.atan js/Math part1))))
+        p (.asin js/Math (* 0.39795 part2))
+        numerator (+ (.sin js/Math 0.01454) (* (.sin js/Math lat) (.sin js/Math p)))
+        denominator (* (.cos js/Math lat) (.cos js/Math p))]
+    (* 60 (- 24 (* 7.63944 (.acos js/Math (/ numerator denominator)))))))</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION02-ET01">
+  <h1>Solution 2-1</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_js.core
+  (:require [clojure.browser.repl :as repl]))
+
+(enable-console-print!)
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(defn radians
+  "Convert degrees to radians"
+  [degrees]
+  (* (/ (.-PI js/Math) 180) degrees))
+
+(defn daylight
+  "Find minutes of daylight given day of year and latitude in degrees.
+  Formula from http://mathforum.org/library/drmath/view/56478.html"
+  [day lat-degrees]
+  (let [lat (radians lat-degrees)
+        part1 (* 0.9671396 (tan js/Math (* 0.00860 (- day 186))))
+        part2 (cos js/Math (+ 0.2163108 (* 2 (atan js/Math part1))))
+        p (asin js/Math (* 0.39795 part2))
+        numerator (+ (sin js/Math 0.01454) (* (sin js/Math lat) (sin js/Math p)))
+        denominator (* (cos js/Math lat) (cos js/Math p))]
+    (* 60 (- 24 (* 7.63944 (acos js/Math (/ numerator denominator)))))))
+
+(defn get-float-value
+  "Get the floating point value of a field"
+  [field]
+  (.parseFloat js/window (.-value (.getElementById js/document field))))
+
+(defn calculate [evt]
+  (let [lat-d (get-float-value "latitude")
+        julian (get-float-value "julian")
+        minutes (daylight lat-d julian)]
+    (set! (.-innerHTML (.getElementById js/document "result")) minutes)))
+    
+(.addEventListener (.getElementById js/document "calculate") "click" calculate)</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION02-ET02">
+  <h1>Solution 2-2</h1>
+  <p>Much of the code is duplicated from the previous étude, only new code is shown here, with ellipses to represent omitted code.</p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_gc.core
+  (:require [clojure.browser.repl :as repl]
+            [goog.dom :as dom]
+            [goog.events :as events]))
+
+...
+
+(defn radians...)
+
+(defn daylight...)
+
+(defn get-float-value
+  "Get the floating point value of a field"
+  [field]
+  (.parseFloat js/window (.-value (dom/getElement field))))
+
+(defn calculate [evt]
+  (let [lat-d (get-float-value "latitude")
+        julian (get-float-value "julian")
+        minutes (daylight lat-d julian)]
+    (dom/setTextContent (dom/getElement "result") minutes)))
+    
+(events/listen (dom/getElement "calculate") "click" calculate)</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION02-ET03">
+  <h1>Solution 2-3</h1>
+  <p>Much of the code is duplicated from the previous étude. Only new code is shown here, with ellipses to represent omitted code.</p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_dommy.core
+  (:require [clojure.browser.repl :as repl]
+            [dommy.core :as dommy :refer-macros [sel sel1]]))
+            
+...
+
+(defn radians ... )
+
+(defn daylight ... )
+
+(defn get-float-value
+  "Get the floating point value of a field"
+  [field]
+  (.parseFloat js/window (dommy/value (sel1 field))))
+
+(defn calculate [evt]
+  (let [lat-d (get-float-value "#latitude")
+        julian (get-float-value "#julian")
+        minutes (daylight lat-d julian)]
+    (dommy/set-text! (sel1 "#result") minutes)))
+    
+(dommy/listen! (sel1 "#calculate") :click calculate)</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION02-ET04">
+  <h1>Solution 2-4</h1>
+  <p>Much of the code is duplicated from the previous étude. Only new code is shown here, with ellipses to represent omitted code.</p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_domina.core
+  (:require [clojure.browser.repl :as repl]
+            [domina]
+            [domina.events :as events]))        
+...
+
+(defn radians ... )
+
+(defn daylight ...)
+
+(defn get-float-value
+  "Get the floating point value of a field"
+  [field]
+  (.parseFloat js/window (domina/value (domina/by-id field))))
+
+(defn calculate [evt]
+  (let [lat-d (get-float-value "latitude")
+        julian (get-float-value "julian")
+        minutes (daylight lat-d julian)]
+    (domina/set-text! (domina/by-id "result") minutes)))
+    
+(events/listen! (domina/by-id "calculate") :click calculate)
+</pre>
+  </section>
+  
+  
+  <section data-type="sect1" id="SOLUTION02-ET05">
+  <h1>Solution 2-5</h1>
+  <p>Much of the code is duplicated from the previous étude. Only new code is shown here, with ellipses to represent omitted code.</p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_enfocus.core
+  (:require [clojure.browser.repl :as repl]
+            [enfocus.core :as ef]
+            [enfocus.events :as ev]))
+            
+... 
+
+(defn daylight ... )
+
+(defn get-float-value
+  "Get the floating point value of a field"
+  [field]
+  (.parseFloat js/window (ef/from field (ef/get-prop :value))))
+
+(defn calculate [evt]
+  (let [lat-d (get-float-value "#latitude")
+        julian (get-float-value "#julian")
+        minutes (daylight lat-d julian)]
+    (ef/at "#result" (ef/content (.toString minutes)))))
+    
+(ef/at "#calculate" (ev/listen :click calculate))</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION03-ET01">
+  <h1>Solution 3-1</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(defn move-zeros
+  "Move zeros to end of a list or vector of numbers"
+  [numbers]
+  (let [nonzero (filter (fn[x] (not= x 0)) numbers)]
+    (concat nonzero
+       (repeat (- (count numbers) (count nonzero)) 0))))</pre>
+  </section>
+
+  
+  <section data-type="sect1" id="SOLUTION03-ET02">
+  <h1>Solution 3-2</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_by_date.core
+  (:require [clojure.browser.repl :as repl]
+            [clojure.string :as str]
+            [domina]
+            [domina.events :as events]))
+
+(enable-console-print!)
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(defn radians
+  "Convert degrees to radians"
+  [degrees]
+  (* (/ (.-PI js/Math) 180) degrees))
+
+(defn daylight
+  "Find minutes of daylight given latitude in degrees and day of year.
+  Formula from http://mathforum.org/library/drmath/view/56478.html"
+  [lat-degrees day]
+  (let [lat (radians lat-degrees)
+        part1 (* 0.9671396 (.tan js/Math (* 0.00860 (- day 186))))
+        part2 (.cos js/Math (+ 0.2163108 (* 2 (.atan js/Math part1))))
+        p (.asin js/Math (* 0.39795 part2))
+        numerator (+ (.sin js/Math 0.01454) (* (.sin js/Math lat) (.sin js/Math p)))
+        denominator (* (.cos js/Math lat) (.cos js/Math p))]
+    (* 60 (- 24 (* 7.63944 (.acos js/Math (/ numerator denominator)))))))
+
+(defn get-float-value
+  "Get the floating point value of a field"
+  [field]
+  (.parseFloat js/window (domina/value (domina/by-id field))))
+
+(defn leap-year?
+  "Return true if given year is a leap year; false otherwise"
+  [year]
+  (or (and (= 0 (rem year 4)) (not= 0 (rem year 100)))
+    (= 0 (rem year 400))))
+
+(defn ordinal-day
+  "Compute ordinal day given Gregorian day, month, and year"
+  [day month year]
+  (let [leap (leap-year? year)
+        feb-days (if leap 29 28)
+        days-per-month [0 31 feb-days 31 30 31 30 31 31 30 31 30 31]
+        month-ok (and (&gt; month 0) (&lt; month 13))
+        day-ok (and month-ok (&gt; day 0) (&lt;= day (+ (nth days-per-month month))))
+        subtotal (reduce + (take month days-per-month))]
+    (if day-ok (+ subtotal day) 0)))
+
+(defn to-julian
+  "Convert Gregorian date to Julian"
+  []
+  (let [greg (domina/value (domina/by-id "gregorian"))
+        parts (str/split greg #"[-/]")
+        [y m d] (map (fn [x] (.parseInt js/window x 10)) parts)]
+    (ordinal-day d m y)))
+
+(defn calculate [evt]
+  (let [lat-d (get-float-value "latitude")
+        julian (to-julian)
+        minutes (daylight lat-d julian)]
+    (domina/set-text! (domina/by-id "result") (str (quot minutes 60) "h "
+                      (.toFixed (rem minutes 60) 2) "m"))))
+    
+(events/listen! (domina/by-id "calculate") :click calculate)</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION03-ET03">
+  <h1>Solution 3-3</h1>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(defn mean
+  "Compute mean of a sequence of numbers."
+  [x]
+  (let [n (count x)]
+    (/ (apply + x) n)))
+
+(defn median
+  "Compute median of a sequence of numbers."
+  [x]
+  (let [n (count x)
+        remainder (drop (- (int (/ n 2)) 1) (sort x))]
+    (if (odd? n)
+      (second remainder)
+      (/ (+ (first remainder) (second remainder)) 2))))
+
+(defn getsums
+  "Reducing function for computing sum and sum of squares.
+  The accumulator is a two-vector with the current sum and sum of squares
+  Could be made clearer with destructuring, but that's not in
+  this chapter."
+  [acc item]
+  (vector (+ (first acc) item) (+ (last acc) (* item item))))
+
+(defn stdev
+  "Compute standard deviation of a sequence of numbers"
+  [x]
+  (let [[sum sumsq] (reduce getsums [0 0] x)
+        n (count x)]
+    (.sqrt js/Math (/ (- sumsq (/ (* sum sum) n)) (- n 1)))))</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION03-ET04">
+  <h1>Solution 3-4</h1>
+
+  <p>
+  This solution uses the Domina library to interact with the web page. The <code>ns</code> special form needs to be updated to require the correct libraries.
+  </p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns stats.core
+  (:require [clojure.browser.repl :as repl]
+            [clojure.string :as str]
+            [domina :as dom]
+            [domina.events :as ev]))</pre>
+
+  <p>
+  This is the additional code for interacting with the web page.
+  </p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(defn calculate
+  "Event handler"
+  [evt]
+  (let [numbers (map js/window.parseFloat
+                  (str/split (domina/value (ev/target evt)) #"[, ]+"))]
+       (domina/set-text! (domina/by-id "mean") (mean numbers))
+       (domina/set-text! (domina/by-id "median") (median numbers))
+       (domina/set-text! (domina/by-id "stdev") (stdev numbers))))
+
+;; connect event handler
+(ev/listen! (domina/by-id "numbers") :change calculate)
+</pre>
+
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION03-ET05">
+  <h1>Solution 3-5</h1>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns teeth.core
+  (:require [clojure.browser.repl :as repl]))
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(enable-console-print!)
+
+(def pocket-depths
+  [[0], [2 2 1 2 2 1], [3 1 2 3 2 3],
+  [3 1 3 2 1 2], [3 2 3 2 2 1], [2 3 1 2 1 1],
+  [3 1 3 2 3 2], [3 3 2 1 3 1], [4 3 3 2 3 3],
+  [3 1 1 3 2 2], [4 3 4 3 2 3], [2 3 1 3 2 2],
+  [1 2 1 1 3 2], [1 2 2 3 2 3], [1 3 2 1 3 3], [0],
+  [3 2 3 1 1 2], [2 2 1 1 3 2], [2 1 1 1 1 2],
+  [3 3 2 1 1 3], [3 1 3 2 3 2], [3 3 1 2 3 3],
+  [1 2 2 3 3 3], [2 2 3 2 3 3], [2 2 2 4 3 4],
+  [3 4 3 3 3 4], [1 1 2 3 1 2], [2 2 3 2 1 3],
+  [3 4 2 4 4 3], [3 3 2 1 2 3], [2 2 2 2 3 3],
+  [3 2 3 2 3 2]])
+
+(defn bad-tooth
+  "Accumulator: vector of bad tooth numbers
+  and current index"
+  [[bad-list index] tooth]
+  (if (some (fn[x] (>= x 4)) tooth)
+    (vector (conj bad-list index) (inc index))
+    (vector bad-list (inc index))))
+
+(defn alert
+  "Display tooth numbers where any of the
+  pocket depths is 4 or greater."
+  [depths]
+  (first (reduce bad-tooth [[] 1] depths)))</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION03-ET06">
+  <h1>Solution 3-6</h1>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns make_teeth.core
+  (:require [clojure.browser.repl :as repl]))
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(defn one-tooth
+  "Generate one tooth"
+  [present probability]
+  (if (= present "F") []
+    (let [base-depth (if (&lt; (rand) probability) 2 3)]
+      (loop [n 6
+             result []]
+         (if (= n 0) result
+           (recur (dec n) (conj result (+ base-depth (- 1 (rand-int 3))))))))))
+
+(defn generate-list
+  "Take list of teeth, probability, and current vector of vectors.
+  Add pockets for each tooth."
+  [teeth-present probability result]
+  (if (empty? teeth-present) result
+    (recur (rest teeth-present) probability (conj result (one-tooth (first teeth-present) probability)))))
+    
+(defn generate-pockets
+  "Take list of teeth present and probability of a good tooth,
+  and create a list of pocket depths."
+  [teeth-present probability]
+  (generate-list teeth-present probability []))</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION03-ET07">
+  <h1>Solution 3-7</h1>
+
+  <p>
+  This suggested solution uses the <a href="https://github.com/ckirkendall/enfocus">Enfocus</a> library to interact with the web page.
+  </p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns daylight_summary.core
+  (:require [clojure.browser.repl :as repl]
+            [enfocus.core :as ef]
+            [enfocus.events :as ev]))
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(enable-console-print!)
+
+(defn radians
+  "Convert degrees to radians"
+  [degrees]
+  (* (/ (.-PI js/Math) 180) degrees))
+
+(defn daylight
+  "Find minutes of daylight given day of year and latitude in degrees.
+  Formula from http://mathforum.org/library/drmath/view/56478.html"
+  [lat-degrees day]
+  (let [lat (radians lat-degrees)
+        part1 (* 0.9671396 (.tan js/Math (* 0.00860 (- day 186))))
+        part2 (.cos js/Math (+ 0.2163108 (* 2 (.atan js/Math part1))))
+        p (.asin js/Math (* 0.39795 part2))
+        numerator (+ (.sin js/Math 0.01454) (* (.sin js/Math lat) (.sin js/Math p)))
+        denominator (* (.cos js/Math lat) (.cos js/Math p))]
+    (* 60 (- 24 (* 7.63944 (.acos js/Math (/ numerator denominator)))))))
+
+(defn make-ranges
+  "Return vector of begin-end ordinal dates for a list of days per month"
+  [mlist]
+  (reduce (fn [acc x] (conj acc (+ x (last acc)))) [1] (rest mlist)))
+
+(def month-ranges
+  "Days per month for non-leap years"
+  (make-ranges '(0 31 28 31 30 31 30 31 31 30 31 30 31)))
+
+(defn to-hours-minutes
+  "Convert minutes to hours and minutes"
+  [m]
+  (str (quot m 60) "h "  (.toFixed (mod m 60) 0) "m"))
+
+(defn get-value
+  "Get the value from a field"
+  [field]
+  (ef/from field (ef/get-prop :value)))
+
+(defn mean
+  "Compute mean of a sequence of numbers."
+  [x]
+  (/ (apply + x) (count x)))
+
+(defn mean-daylight
+  "Get mean daylight for a range of days"
+  [start finish latitude]
+  (let [f (fn [x] (daylight latitude x))]
+    (mean (map f (range start finish)))))
+  
+(defn generate-averages
+  "Generate monthly averages for a given latitude"
+  [latitude]
+  (loop [ranges month-ranges
+         result []]
+    (if (&lt; (count ranges) 2)
+        result
+        (recur (rest ranges)
+               (conj result (mean-daylight (first ranges) (second ranges) latitude))))))
+        
+(defn calculate [evt]
+  (let [fromMenu (first (ef/from "input[name='locationType']" (ef/get-prop :checked)))
+        lat-d (if fromMenu (.parseFloat js/window (get-value "#cityMenu"))
+                           (.parseFloat js/window (get-value "#latitude")))
+        averages (generate-averages lat-d)]
+    (doall (map-indexed
+             (fn [n item] (ef/at (str "#m" (inc n)) (ef/content (to-hours-minutes item))))
+             averages))))
+
+(ef/at "#calculate" (ev/listen :click calculate))</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION04-ET01">
+  <h1>Solution 4-1</h1>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns condiments.core
+  (:require [cljs.nodejs :as nodejs]))
+
+(nodejs/enable-util-print!)
+
+(def xml (js/require "node-xml-lite"))
+
+;; forward reference
+(declare process-child)
+
+(defn process-children
+  "Process an array of child nodes, with a current food name
+  and accumulate a result"
+  [[food result] children]
+  (let [[final-food final-map] (reduce process-child [food result] children)]
+    [final-food final-map]))
+
+(defn add-condiment
+  "Add food to the vector of foods that go with this condiment"
+  [result food condiment]
+  (let [food-list (get result condiment)
+        new-list (if food-list (conj food-list food) [food])]
+    (assoc result condiment new-list)))
+
+(defn process-child
+  "Given a current food and result map, and an item,
+  return the new food name and result map"
+  [[food result] item]
+  
+  ;; The first child of an element is text - either a food name
+  ;; or a condiment name, depending on the element name.
+  (let [firstchild (first (.-childs item))]
+    (cond
+      (= (.-name item) "display_name") (vector firstchild result)
+      (.test #"cond_._name" (.-name item))
+        (vector food (add-condiment result food firstchild))
+      (and (.-childs item) (.-name firstchild))
+        (process-children [food result] (.-childs item))
+      :else [food result])))
+
+(defn -main []
+  (let [docmap (.parseFileSync xml (nth (.-argv js/process) 2))]
+  (println (last (process-children ["" {}] (.-childs docmap))))))
+
+(set! *main-cli-fn* -main)</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION04-ET02A">
+  <h1>Solution 4-2A</h1>
+  <p>
+  This is a sample web server that simply echoes back the user’s input. Use this as a guide for the remainder of the étude.
+  </p>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns servertest.core
+  (:require-macros [hiccups.core :as hiccups])
+  (:require [cljs.nodejs :as nodejs]
+            [hiccups.runtime :as hiccupsrt]))
+
+(nodejs/enable-util-print!)
+
+(def express (nodejs/require "express"))
+
+(defn generate-page! [request response]
+  (let [query (.-query request)
+        user-name (if query (.-userName query) "")]
+    (.send response
+           (hiccups/html
+             [:html
+              [:head [:title "Server Example"]
+               [:meta {:http-equiv "Content-type" :content "text/html"
+                       :charset "utf-8"}]]
+              [:body
+               [:p "Enter your name:"]
+               [:form {:action "/"
+                       :method "get"}
+                [:input {:name "userName" :value user-name}]
+                [:input {:type "submit" :value "Send Data"}]]
+               [:p (if (and user-name (not= user-name ""))
+                     (str "Pleased to meet you, " user-name ".") "")]]]))))
+
+(defn -main []
+  (let [app (express)]
+    (.get app "/" generate-page!)
+    (.listen app 3000
+             (fn []
+               (println "Server started on port 3000")))))
+
+(set! *main-cli-fn* -main)</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION04-ET02B">
+  <h1>Solution 4-2B</h1>
+  <p>
+  This is a solution for the condiment matcher web page. It has separated the code for creating the condiment map from the XML page into a separate file to keep the code cleaner.
+  </p>
+  
+<pre data-type="programlisting" data-code-language="clojurescript">(ns foodserver.mapmaker)
+
+(def xml (js/require "node-xml-lite"))
+
+;; forward reference
+(declare process-child)
+
+(defn process-children
+  "Process an array of child nodes, with a current food name
+  and accumulate a result"
+  [[food result] children]
+  (let [[final-food final-map] (reduce process-child [food result] children)]
+    [final-food final-map]))
+
+(defn add-condiment
+  "Add food to the vector of foods that go with this condiment"
+  [result food condiment]
+  (let [food-list (get result condiment)
+        new-list (if food-list (conj food-list food) [food])]
+    (assoc result condiment new-list)))
+
+(defn process-child
+  "Given a current food and result map, and an item,
+  return the new food name and result map"
+  [[food result] item]
+
+  ;; The first child of an element is text - either a food name
+  ;; or a condiment name, depending on the element name.
+  (let [firstchild (first (.-childs item))]
+    (cond
+      (= (.-name item) "display_name") (vector firstchild result)
+      (.test #"cond_._name" (.-name item))
+      (vector food (add-condiment result food firstchild))
+      (and (.-childs item) (.-name firstchild))
+      (process-children [food result] (.-childs item))
+      :else [food result])))
+
+(defn foodmap [filename]
+  (let [docmap (.parseFileSync xml filename)]
+    (last (process-children ["" {}] (.-childs docmap)))))</pre>
+    
+    <p>Here is the main file.</p>
+    
+<pre data-type="programlisting" data-code-language="clojurescript">(ns foodserver.core
+  (:require-macros [hiccups.core :as hiccups])
+  (:require [cljs.nodejs :as nodejs]
+            [hiccups.runtime :as hiccupsrt]
+            [foodserver.mapmaker :as mapmaker]
+            [clojure.string :as str]))
+
+(nodejs/enable-util-print!)
+
+(def express (nodejs/require "express"))
+
+(def foodmap (mapmaker/foodmap "food.xml"))
+
+(defn case-insensitive [a b]
+  (compare (str/upper-case a) (str/upper-case b)))
+
+(defn condiment-menu
+  "Create HTML menu with the given selection
+  as the 'selected' item"
+  [selection]
+  (map (fn [item] [:option
+                   (if (= item selection){:value item :selected "selected"} {:value item})
+                   item])
+       (sort case-insensitive (keys foodmap))))
+
+(defn compatible-foods
+  "Create unordered list of foods compatible with selected condiment"
+  [selection]
+  (if selection
+    (map (fn [item] [:li item]) (sort case-insensitive (foodmap selection)))
+    nil))
+
+(defn generate-page! [request response]
+  (let [query (.-query request)
+        chosen-condiment (if query (.-condiment query) "")]
+    (.send response
+           (hiccups/html
+             [:html
+              [:head
+               [:title "Condiment Matcher"]
+               [:meta {:http-equiv "Content-type"
+                       :content "text/html; charset=utf-8"}]]
+              [:body
+               [:h1 "Condiment Matcher"]
+               [:form {:action "http://localhost:3000"
+                       :method "get"}
+                [:select {:name "condiment"}
+                 [:option {:value ""} "Choose a condiment"]
+                 (condiment-menu chosen-condiment)]
+                [:input {:type "submit" :value "Find Compatible Foods"}]]
+               [:ul (compatible-foods chosen-condiment)]
+               [:p "Source data: "
+                [:a {:href "http://catalog.data.gov/dataset/mypyramid-food-raw-data-f9ed6"}
+                 "MyPyramid Food Raw Data"]
+                " from the Food and Nutrition Service of the United States Department of Agriculture."]]]))))
+
+(defn -main []
+  (let [app (express)]
+    (.get app "/" generate-page!)
+    (.listen app 3000 (fn []
+                        (println "Server started on port 3000")))))
+
+(set! *main-cli-fn* -main)</pre>
+  </section>
+  
+  
+  <section data-type="sect1" id="SOLUTION04-ET03">
+  <h1>Solution 4-3</h1>
+  
+  <p>
+  Here is the code for reading a file line by line:
+  </p>
+  
+  <section data-type="sect2">
+  <h2>File cljs_made_easy/line_seq.clj</h2>
+<pre data-type="programlisting" data-code-language="clojurescript"> ;; This is a macro, and must be in clojure. It's name and location is the same as
+;; the cljs file, except with a .clj extension.
+(ns cljs-made-easy.line-seq
+  (:refer-clojure :exclude [with-open]))
+
+(defmacro with-open [bindings &amp; body]
+  (assert (= 2 (count bindings)) "Incorrect with-open bindings")
+  `(let ~bindings
+     (try
+       (do ~@body)
+       (finally
+         (.closeSync cljs-made-easy.line-seq/fs ~(bindings 0))))))</pre>
+  </section>
+  
+  <section data-type="sect2">
+  <h2>File cljs_made_easy/line_seq.cljs</h2>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns cljs-made-easy.line-seq
+  (:require clojure.string)
+  (:require-macros [cljs-made-easy.line-seq :refer [with-open]]))
+
+(def fs (js/require "fs"))
+
+(defn- read-chunk [fd]
+  (let [length 128
+        b (js/Buffer. length)
+        bytes-read (.readSync fs fd b 0 length nil)]
+    (if (> bytes-read 0)
+      (.toString b "utf8" 0 bytes-read))))
+
+(defn line-seq
+  ([fd]
+   (line-seq fd nil))
+  ([fd line]
+   (if-let [chunk (read-chunk fd)]
+     (if (re-find #"\n" (str line chunk))
+       (let [lines (clojure.string/split (str line chunk) #"\n")]
+         (if (= 1 (count lines))
+           (lazy-cat lines (line-seq fd))
+           (lazy-cat (butlast lines) (line-seq fd (last lines)))))
+       (recur fd (str line chunk)))
+     (if line
+       (list line)
+       ()))))</pre>
+  </section>
+ 
+  <section data-type="sect2">
+  <h2>File frequency/core.cljs</h2>
+  <p>
+  And this is the code to create the frequency table
+  </p>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns frequency.core
+  (:require [cljs.nodejs :as nodejs]
+            [clojure.string :as str]
+            [cljs-made-easy.line-seq :as cme]))
+
+(nodejs/enable-util-print!)
+
+(def filesystem (js/require "fs")) ;;require nodejs lib
+
+;; These keywords are the "column headers" from the spreadsheet.
+;; An entry of nil means that I am ignoring that column.
+(def headers [:date :time nil :accident :injury :property-damage :fatal nil
+              :vehicle :year :make :model :color :type nil :race :gender :driver-state nil])
+
+(defn zipmap-omit-nil
+  "Does the same as zipmap, except when there's a nil in the
+  first vector, it doesn't put anything into the map.
+  I wrote it this way just to prove to myself that I could do it.
+  It's easier to just say (dissoc (zipmap a-vec b-vec) nil)"
+  [a-vec b-vec]
+  (loop [result {}
+          a a-vec
+          b b-vec]
+    (if (or (empty? a) (empty? b))
+      result
+      (recur (if-not (nil? (first a))
+               (assoc result (first a) (first b))
+               result)
+             (rest a) (rest b)))))
+
+(defn add-row
+  "Convenience function that adds a row from the CSV file
+  to the data map."
+  [line]
+  (zipmap-omit-nil headers (str/split line #"\t")))
+
+(defn create-data-structure
+  "Create a vector of maps from a tab-separated value file
+  and a list of header keywords."
+  [filename headers]
+  (cme/with-open [file-descriptor (.openSync filesystem filename "r")]
+             (reduce (fn [result line] (conj result (add-row line))) [] (rest (cme/line-seq file-descriptor)))))
+
+(def traffic (create-data-structure "traffic_july_2014_edited.csv" headers))
+
+(defn frequency-table
+  "Accumulate frequencies for specifier (a heading keyword
+   or a function that returns a value) in data-map,
+   optionally returning a total."
+  [data-map specifier]
+  (let [result-map (reduce
+                    (fn [acc item]
+                      (let [v (if specifier (specifier item) nil)]
+                        (assoc acc v (+ 1 (get acc v)))))
+                    {} data-map)
+        result-seq (sort (seq result-map))
+        freq (map last result-seq)]
+    [(vec (map first result-seq)) (vec freq) (reduce + freq)]))
+
+(defn -main []
+  (println "Hello world!"))
+
+(set! *main-cli-fn* -main)</pre>
+  </section>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION04-ET04">
+  <h1>Solution 4-4</h1>
+  <p>
+  The code for reading the CSV file is unchanged from the previous étude, so I won’t repeat it here.
+  </p>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns crosstab.core
+  (:require [cljs.nodejs :as nodejs]
+            [clojure.string :as str]
+            [cljs-made-easy.line-seq :as cme]))
+
+(nodejs/enable-util-print!)
+
+(def filesystem (js/require "fs")) ;;require nodejs lib
+
+;; These keywords are the "column headers" from the spreadsheet.
+;; An entry of nil means that I am ignoring that column.
+(def headers [:date :time nil :accident :injury :property-damage :fatal nil
+              :vehicle :year :make :model :color :type nil :race :gender :driver-state nil])
+
+(defn zipmap-omit-nil
+  "Does the same as zipmap, except when there's a nil in the
+  first vector, it doesn't put anything into the map.
+  I wrote it this way just to prove to myself that I could do it.
+  It's easier to just say (dissoc (zipmap a-vec b-vec) nil)"
+  [a-vec b-vec]
+  (loop [result {}
+          a a-vec
+          b b-vec]
+    (if (or (empty? a) (empty? b))
+      result
+      (recur (if-not (nil? (first a))
+               (assoc result (first a) (first b))
+               result)
+             (rest a) (rest b)))))
+
+(defn add-row
+  "Convenience function that adds a row from the CSV file
+  to the data map."
+  [line]
+  (zipmap-omit-nil headers (str/split line #"\t")))
+
+(defn create-data-structure
+  "Create a vector of maps from a tab-separated value file
+  and a list of header keywords."
+  [filename headers]
+  (cme/with-open [file-descriptor (.openSync filesystem filename "r")]
+             (reduce (fn [result line] (conj result (add-row line))) []
+               (rest (cme/line-seq file-descriptor)))))
+
+(def traffic (create-data-structure "traffic_july_2014_edited.csv" headers))
+
+(defn marginal
+  "Get marginal totals for a frequency map. (Utility function)"
+  [freq]
+  (vec (map last (sort (seq freq)))))
+
+(defn cross-tab
+  "Accumulate frequencies for given row and column in data-map,
+  returning row and column totals, plus grand total."
+  [data-map row-spec col-spec]
+  
+  ; In the following call to reduce, the accumulator is a
+  ; vector of three maps.
+  ; The first maps row values => frequency
+  ; The second maps column values => frequency
+  ; The third is a map of maps, mapping  row values => column values => frequency
+ 
+  (let [[row-freq  col-freq cross-freq] (reduce
+                     (fn [acc item]
+                       (let [r (if row-spec (row-spec item) nil)
+                             c (if col-spec (col-spec item) nil)]
+                         [(assoc (first acc) r (+ 1 (get (first acc) r)))
+                          (assoc (second acc) c (+ 1 (get (second acc) c)))
+                          (assoc-in (last acc) [r c] (+ 1 (get-in (last acc) [r c])))]))
+                     [{} {} {}] data-map)
+        ; I need row totals as part of the return, and I also
+        ; add them to get grand total - don't want to re-calculate
+        row-totals (marginal row-freq)]
+        [(vec (sort (keys row-freq)))
+         (vec (sort (keys col-freq)))
+         (vec (for [r (sort (keys row-freq))]
+                (vec (for [c (sort (keys col-freq))]
+                       (if-let [n (get-in cross-freq (list r c))] n 0)))))
+         row-totals
+         (marginal col-freq)
+         (reduce + row-totals)]))
+
+(defn frequency-table
+  "Accumulate frequencies for specifier in data-map,
+  optionally returning a total. Use a call to cross-tab
+  to re-use code."
+  [data-map specifier]
+  (let [[row-labels _ row-totals _ grand-total] (cross-tab data-map specifier nil)]
+    [row-labels (vec (map first row-totals)) grand-total]))
+
+(defn -main []
+  (println "Hello world!"))
+
+(set! *main-cli-fn* -main)</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION04-ET05">
+  <h1>Solution 4-5</h1>
+  <p>
+  The cross-tabulation functions from <a href="#SOLUTION04-ET04" data-type="xref">#SOLUTION04-ET04</a> are moved to a file named <em>crosstab.cljs</em> and the initial <code>(ns...)</code> changed accordingly.
+  </p>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns traffic.core
+  (:require-macros [hiccups.core :as hiccups])
+  (:require [cljs.nodejs :as nodejs]
+            [clojure.string :as str]
+            [cljs-made-easy.line-seq :as cme]
+            [hiccups.runtime :as hiccupsrt]
+            [traffic.crosstab :as ct]))
+
+(nodejs/enable-util-print!)
+
+(def express (nodejs/require "express"))
+
+(def filesystem (js/require "fs")) ;;require nodejs lib
+
+;; These keywords are the "column headers" from the spreadsheet.
+;; An entry of nil means that I am ignoring that column.
+(def headers [:date :time nil :accident :injury :property-damage :fatal nil
+              :vehicle :year :make :model :color :type nil :race :gender :driver-state nil])
+
+(defn zipmap-omit-nil
+  "Does the same as zipmap, except when there's a nil in the
+  first vector, it doesn't put anything into the map.
+  I wrote it this way just to prove to myself that I could do it.
+  It's easier to just say (dissoc (zipmap a-vec b-vec) nil)"
+  [a-vec b-vec]
+  (loop [result {}
+          a a-vec
+          b b-vec]
+    (if (or (empty? a) (empty? b))
+      result
+      (recur (if-not (nil? (first a))
+               (assoc result (first a) (first b))
+               result)
+             (rest a) (rest b)))))
+
+(defn add-row
+  "Convenience function that adds a row from the CSV file
+  to the data map."
+  [line]
+  (zipmap-omit-nil headers (str/split line #"\t")))
+
+(defn create-data-structure
+  "Create a vector of maps from a tab-separated value file
+  and a list of header keywords."
+  [filename headers]
+  (cme/with-open [file-descriptor (.openSync filesystem filename "r")]
+             (reduce (fn [result line] (conj result (add-row line))) [] (rest (cme/line-seq file-descriptor)))))
+
+(def traffic (create-data-structure "traffic_july_2014_edited.csv" headers))
+
+(defn day [entry] (.substr (:date entry) 3 2))
+(defn hour [entry] (.substr (:time entry) 0 2))
+
+(def field-list [
+               ["Choose a field" nil]
+               ["Day" day]
+               ["Hour" hour]
+               ["Accident" :accident]
+               ["Injury" :injury]
+               ["Property Damage" :property-damage]
+               ["Fatal" :fatal]
+               ["Vehicle year" :year]
+               ["Vehicle Color" :color]
+               ["Driver's Race" :race]
+               ["Driver's Gender" :gender]
+               ["Driver's State" :driver-state]])
+
+(defn traffic-menu
+  "Create a &lt;select&gt; menu with the given choice selected"
+  [option-list selection]
+  (map-indexed (fn [n item]
+                 (let [menu-text (first item)]
+                   [:option
+                    (if (= n selection){:value n :selected "selected"} {:value n})
+                    menu-text]))
+                 option-list))
+
+(defn field-name [n] (first (get field-list n)))
+(defn field-code [n] (last (get field-list n)))
+
+(defn add-table-row
+  [row-label counts row-total result]
+    (conj result (reduce (fn [acc item] (conj acc [:td item])) [:tr [:th row-label]] (conj counts row-total))))
+
+(defn html-table
+  [[row-labels col-labels counts row-totals col-totals grand-total]]
+  [:div
+   [:table
+    (if (not (nil? (first col-labels)))
+      [:thead (reduce (fn [acc item] (conj acc [:th item])) [:tr [:th "\u00a0"]]
+                      (conj col-labels "Total"))]
+      [:thead [:tr [:th "\u00a0"] [:th "Total"]]])
+    (if (not (nil? (first col-labels)))
+        (vec (loop [rl row-labels
+                    freq counts
+                    rt row-totals
+                    result [:tbody]]
+               (if-not (empty? rl)
+                 (recur (rest rl) (rest freq) (rest rt)
+                        (add-table-row (first rl) (first freq) (first rt) result))
+                 (add-table-row "Total" col-totals grand-total result))))
+        (vec (loop [rl row-labels
+                    rt row-totals
+                    result [:tbody]]
+               (if-not (empty? rl)
+                 (recur (rest rl) (rest rt)
+                        (conj result [:tr [:th (first rl)] [:td (first rt)]]))
+                 (conj result [:tr [:th "Total"] [:td grand-total]])))))]
+   ])
+
+(defn show-table
+  [row-spec col-spec]
+  (cond
+    (and (not= 0 row-spec) (not= 0 col-spec))
+      [:div [:h2 (str (field-name row-spec) " vs. " (field-name col-spec))]
+      (html-table (ct/cross-tab traffic (field-code row-spec) (field-code col-spec)))]
+    (not= 0 row-spec)
+      [:div [:h2 (field-name row-spec)]
+       (html-table (ct/cross-tab traffic (field-code row-spec) nil))]
+    :else
+      nil))
+
+(defn generate-page! [request response]
+  (let [query (.-query request)
+        col-spec (if query (js/parseInt (.-column query)) nil)
+        row-spec (if query (js/parseInt (.-row query)) nil)]
+    (.send response
+           (hiccups/html
+             [:html
+              [:head
+               [:title "Traffic Violations"]
+               [:meta {:http-equiv "Content-type"
+                       :content "text/html; charset=utf-8"}]
+               [:link {:rel "stylesheet" :type "text/css" :href "style.css"}]]
+              [:body
+               [:h1 "Traffic Violations"]
+               [:form {:action "http://localhost:3000"
+                       :method "get"}
+                "Row: "
+                [:select {:name "row"}
+                 (traffic-menu field-list row-spec)]
+                "Column: "[:select {:name "column"}
+                 (traffic-menu field-list col-spec)]
+                [:input {:type "submit" :value "Calculate"}]]
+               (show-table row-spec col-spec)
+               [:hr]
+               [:p "Source data: "
+                [:a {:href "http://catalog.data.gov/dataset/traffic-violations-56dda"}
+                 "Montgomery County Traffic Violation Database"]]]]))))
+
+(defn -main []
+  (let [app (express)]
+    (.use app (.static express "."))
+    (.get app "/" generate-page!)
+    (.listen app 3000 (fn []
+                        (println "Server started on port 3000")))))
+
+(set! *main-cli-fn* -main)</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION05-ET01">
+  <h1>Solution 5-1</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns react_q.core
+  (:require [clojure.browser.repl :as repl]
+            [quiescent.core :as q]
+            [quiescent.dom :as d]
+            [quiescent.dom.uncontrolled :as du]))
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(defonce status
+         (atom {:w 0 :h 0 :proportional true
+                :border-width "3" :border-style "none"
+                :orig-w 0 :orig-h 0 :src "clock.jpg"}))
+
+(enable-console-print!)
+
+(defonce border-style-list '("none" "solid" "dotted" "dashed"
+                              "double" "groove" "ridge"
+                              "inset" "outset"))
+(defn resize
+  "Resize the image; if proportional, determine which field
+  has changed and change the other accordingly."
+  [evt]
+  (let [{:keys [w h proportional orig-w orig-h]} @status
+        target (.-target evt)
+        id (.-id target)
+        val (.-value target)]
+    (if proportional
+      (cond
+        (= id "w") (swap! status assoc :w val :h (int (* (/ val orig-w) orig-h)))
+        (= id "h") (swap! status assoc :h val :w (int (* (/ val orig-h) orig-w)))
+        :else (swap! status assoc :h orig-h :w orig-w))
+      (swap! status assoc (keyword id) (.-value target)))))
+
+(defn recheck
+  "Handle the checkbox. Since the checked property isn't the
+  value of the checkbox, I had to set the property by hand"
+  [evt]
+  (let [new-checked (not (:proportional @status))]
+    (swap! status assoc :proportional new-checked)
+    (set! (.-checked (.-target evt)) new-checked)))
+
+(defn change-border [evt]
+  (let [{:keys [border-width border-style]} @status
+        target (.-target evt)
+        id (.-id target)
+        val (.-value target)]
+    (cond
+      (= id "menu") (swap! status assoc :border-style val)
+      (= id "bw") (swap! status assoc :border-width val))))
+
+(defn set-dimensions
+  "Set dimensions of the image once it loads"
+  [evt]
+  (let [node (.getElementById js/document "image")
+        id (.-id node)]
+    (swap! status assoc :orig-w (.-naturalWidth node)
+           :orig-h (.-naturalHeight node)
+           :w (.-naturalWidth node) :h (.-naturalHeight node))))
+
+(q/defcomponent Image
+                "A component that displays an image"
+                :name "ImageWidget"
+                [status]
+                (d/img {:id "image"
+                        :src (:src status)
+                        :width (:w status)
+                        :height (:h status)
+                        :style {:float "right"
+                                :borderWidth (:border-width status)
+                                :borderColor "red"
+                                :borderStyle (:border-style status)}
+                        :onLoad set-dimensions
+                        }))
+
+(q/defcomponent Option
+                [item]
+                (d/option {:value item} item))
+
+(q/defcomponent Form
+                "Input form"
+                :name "FormWidget"
+                :on-mount (fn [node val]
+                            (set! (.-checked (.getElementById js/document "prop"))
+                                  (:proportional val)))
+                [status]
+                (d/form {:id "params"}
+                        "Width: "
+                        (d/input {:type "text" :size "5" :value (:w status)
+                                   :id "w"
+                                  :onChange resize})
+                        "Height: "
+                        (d/input {:type "text" :size "5":value (:h status)
+                                   :id "h"
+                                  :onChange resize})
+                        (d/br)
+                        (du/input {:type "checkbox"
+                                   :id "prop"
+                                  :onChange recheck
+                                  :value "proportional"})
+                        "Preserve Proportions"
+                        (d/br)
+                        "Border: "
+                        (d/input {:type "text" :size "5"
+                                  :value (:border-width status)
+                                  :id "bw"
+                                  :onChange change-border})
+                        "px "
+                        (apply d/select {:id "menu" :onChange change-border}
+                               (map Option border-style-list))))
+
+(q/defcomponent Interface
+                "User Interface"
+                :name "Interface"
+                [status]
+                (d/div {}
+                  (Image status)
+                  (Form status)))
+
+(defn render
+  "Render the current state atom, and schedule a render on the next
+  frame"
+  []
+  (q/render (Interface @status) (.getElementById js/document "interface"))
+  (.requestAnimationFrame js/window render))
+
+(render)</pre>  
+  </section>
+
+  <section data-type="sect1" id="SOLUTION05-ET02">
+  <h1>Solution 5-2</h1>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns react_r.core
+  (:require [clojure.browser.repl :as repl]
+            [reagent.core :as reagent :refer [atom]]))
+
+(defonce conn
+  (repl/connect "http://localhost:9000/repl"))
+
+(defonce status
+         (atom {:w 0 :h 0 :proportional true
+                :border-width "3" :border-style "none"
+                :orig-w 0 :orig-h 0 :src "clock.jpg"}))
+
+(enable-console-print!)
+
+(defonce border-style-list '("none" "solid" "dotted" "dashed"
+                              "double" "groove" "ridge"
+                              "inset" "outset"))
+(defn resize
+  "Resize the image; if proportional, determine which field
+  has changed and change the other accordingly."
+  [evt]
+  (let [{:keys [w h proportional orig-w orig-h]} @status
+        target (.-target evt)
+        id (.-id target)
+        val (.-value target)]
+    (if proportional
+      (cond
+        (= id "w") (swap! status assoc :w val :h (int (* (/ val orig-w) orig-h)))
+        (= id "h") (swap! status assoc :h val :w (int (* (/ val orig-h) orig-w)))
+        :else (swap! status assoc :h orig-h :w orig-w))
+      (swap! status assoc (keyword id) (.-value target)))))
+
+(defn recheck
+  "Handle the checkbox. Since the checked property isn't the
+  value of the checkbox, I had to set the property by hand"
+  [evt]
+  (let [new-checked (not (:proportional @status))]
+    (swap! status assoc :proportional new-checked)
+    (set! (.-checked (.-target evt)) new-checked)))
+
+(defn change-border [evt]
+  (let [{:keys [border-width border-style]} @status
+        target (.-target evt)
+        id (.-id target)
+        val (.-value target)]
+    (cond
+      (= id "menu") (swap! status assoc :border-style val)
+      (= id "bw") (swap! status assoc :border-width val))))
+
+(defn set-dimensions
+  "Set dimensions of the image once it loads"
+  [evt]
+  (let [node (.getElementById js/document "image")
+        id (.-id node)]
+    (swap! status assoc :orig-w (.-naturalWidth node)
+           :orig-h (.-naturalHeight node)
+           :w (.-naturalWidth node) :h (.-naturalHeight node))))
+
+(defn image
+  "A component that displays an image"
+  []
+  [:img {:id "image"
+  :src (:src @status)
+  :width (:w @status)
+  :height (:h @status)
+  :style {:float "right"
+      :borderWidth (:border-width @status)
+      :borderColor "red"
+      :borderStyle (:border-style @status)}
+  :on-load set-dimensions}])
+
+(defn option [item]
+  [:option {:value item :key item} item])
+
+(defn cbox []
+ (do (println "CBOX")
+    [:input {:type "checkbox"
+             :id "prop"
+             :on-change recheck
+             :value "proportional"}]))
+             
+(defn form
+  "Input form"
+  []
+  [:form {:id "params"}
+    "Width: "
+    [:input {:type "text" :size "5" :value (:w @status)
+             :id "w"
+             :on-change resize}]
+    "Height: "
+    [:input {:type "text" :size "5":value (:h @status)
+             :id "h"
+             :on-change resize}]
+    [:br]
+    (cbox)
+    "Preserve Proportions"
+    [:br]
+    "Border: "
+    [:input {:type "text" :size "5"
+          :value (:border-width @status)
+          :id "bw"
+          :on-change change-border}]
+    "px "
+
+    [:select {:id "menu" :on-change change-border}
+      (for [item border-style-list]
+         (option item))]])
+
+(defn interface-without-init []
+  [:div
+    (image)
+    (form)])
+
+(def interface
+  (with-meta interface-without-init
+    {:component-did-mount
+      (fn [this]
+       (set! (.-checked (.getElementById js/document "prop"))
+             (:proportional @status))
+        )}))
+
+
+(defn render
+  "Render the current state atom"
+  []
+  (reagent/render [interface] (.getElementById js/document "interface")))
+
+(render)</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION06-ET01">
+  <h1>Solution 6-1</h1>
+  <p>
+  In this étude, I named the project <em>building_usage</em> and had a module named <em>roster.cljs</em> to create the data structures. I also had a module named <em>utils.cljs</em> to handle conversion of time of day to number of minutes past midnight, which makes it easy to calculate durations. There is also a utility routine to convert that format to 24-hour time.
+  </p>
+  
+  <p>
+  The <em>roster.cljs</em> file includes the raw CSV as a gigantic string (well, if you consider 72K bytes to be gigantic), including columns I am not using. The <code>build-data-structure</code> function creates:
+  </p>
+  
+  <ul>
+     <li>A map with a day name as key...
+        <ul>
+          <li>and whose value is a map with building name as a key...
+            <ul>
+              <li>whose value is a map with time (number of 15-minute intervals since midnight) as key
+                <ul>
+                   <li>and whose value is the number of rooms occupied</li>
+                 </ul>
+               </li>
+             </ul>
+           </li>
+         </ul>
+       </li>
+     </ul>
+     
+  <p>
+  For this very small subset of the data:
+  </p>
+  
+<pre>(def roster-string "W;01:00 PM;03:25 PM;C283
+TH;06:30 PM;09:35 PM;D207
+W;02:45 PM;05:35 PM;C244
+TH;06:00 PM;09:05 PM;D208")</pre>
+
+  <p>The resulting map:</p>
+
+<pre>{"Wednesday"
+  {"C" {64 1, 65 1, 66 1, 67 1, 68 1, 69 1, 70 1, 52 1, 53 1, 54 1, 55 1, 56 1,
+        57 1, 58 1, 59 2, 60 2, 61 2, 62 1, 63 1}},
+"Thursday"
+  {"D" {72 1, 73 1, 74 2, 75 2, 76 2, 77 2, 78 2, 79 2, 80 2, 81 2, 82 2, 83 2,
+        84 2, 85 1, 86 1}}}</pre>
+
+  <section data-type="sect2">
+  <h2>File building_usage/src/roster.cljs</h2>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns building_usage.roster
+  (:require [clojure.string :as str]
+            [building_usage.utils :as utils]))
+
+;; many lines omitted
+(def roster-string "MW;01:00 PM;03:25 PM;C283
+TH;06:30 PM;09:35 PM;D207
+W;02:45 PM;05:35 PM;C244
+TH;06:00 PM;09:05 PM;D208")
+
+(def day-map {"M" "Monday", "T" "Tuesday",
+  "W" "Wednesday", "R" "Thursday"
+  "F" "Friday", "S" "Saturday", "N" "Sunday"})
+
+(defn add-entries
+  "Increment the usage count for the building on the given days and times.
+  If there is not an entry yet, created 96 zeros (24 hours at 15-minute intervals)"
+  [acc day building intervals]
+  (let [current (get-in acc [(day-map day) building])
+        before (if (nil? current) (into [] (repeat 96 0)) current)
+        after (reduce (fn [acc item] (assoc acc item (inc (get acc item)))) before intervals)]
+     (assoc-in acc [(day-map day) building] after)))
+
+(defn building-map-entry
+  "Split incoming line into parts, then add entries into the count vector
+   for each day and time interval for the appropriate building."
+  [acc line]
+  (let [[days start-time end-time room] (str/split line #";")
+        day-list (rest (str/split (str/replace (str/replace days #"TH" "R") #"SU" "N") #""))
+        start-interval (quot (utils/to-minutes start-time) 15)
+        end-interval (quot (+ 14 (utils/to-minutes end-time)) 15)
+        building (str/replace room #"([A-Z]+).*$" "$1")]
+    (loop [d day-list
+           result acc]
+      (if (empty? d)
+          result
+          (recur (rest d)
+                 (add-entries result (first d) building (range start-interval end-interval)))))))
+        
+(defn building-usage-map []
+  (let [lines (str/split-lines roster-string)]
+    (reduce building-map-entry {} lines)))
+
+(defn room-list
+  "Create a map building -> set of rooms in building"
+  [acc line]
+  (let [[_ _ _ room] (str/split line #";")
+        building (str/replace room #"([A-Z]+).*$" "$1")
+        current (acc building)]
+    (assoc acc building (if (nil? current) #{room} (conj current room)))))
+        
+(defn total-rooms []
+  "Create map with building as key and number of rooms in building as value."
+  (let [lines (str/split-lines roster-string)
+        room-list (reduce room-list {} lines)]
+    (into {} (map (fn [[k v]] [k (count (room-list k))]) room-list))))</pre>
+    </section>
+  <section data-type="sect2">
+  <h2>File building_usage/src/utils.cljs</h2>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns building_usage.utils)
+
+(defn to-minutes [time-string]
+  (let [[_ hr minute am-pm] (re-matches #"(?i)(\d\d?):(\d\d)\s*([AP])\.?M\.?" time-string)
+        hour (+ (mod (js/parseInt hr) 12) (if (= (.toUpperCase am-pm) "A") 0 12))]
+    (+ (* hour 60) (js/parseInt minute))))
+
+(defn pad [n] (if (&lt; n 10) (str "0" n) (.toString n)))
+
+(defn to-am-pm [total-minutes]
+  (let [h (quot total-minutes 60)
+        m (mod total-minutes 60)
+        hour (if (= (mod h 12) 0) 12 (mod h 12))
+        suffix (if (&lt; h 12) "AM" "PM")]
+    (str hour ":" (pad m) " " suffix)))
+    
+(defn to-24-hr [total-minutes]
+  (str (pad (quot total-minutes 60)) (pad (mod total-minutes 60))))</pre>
+</section>
+</section>
+
+  <section data-type="sect1" id="SOLUTION06-ET02">
+  <h1>Solution 6-2</h1>
+  
+  <p>
+  In this solution, I am using <code>setInterval</code> to advance the animation rather than <code>requestAnimationFrame</code>. This is because I don’t need smooth animation; I really want one “frame” every 1.5 seconds.
+  </p>
+  
+  <section data-type="sect2">
+  <h1>File <em>core.cljs</em></h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always building_usage.core
+    (:require [building_usage.roster :as roster]
+              [building_usage.utils :as utils]
+              [goog.dom :as dom]
+              [goog.events :as events]))
+
+(enable-console-print!)
+
+(def days ["Monday" "Tuesday" "Wednesday" "Thursday"
+           "Friday" "Saturday" "Sunday"])
+
+(def buildings ["A" "B" "C" "D" "FLD" "GYM"
+                "M" "N" "P"])
+(def svg (.-contentDocument (dom/getElement "campus_map")))
+
+;; define your app data so that it doesn't get over-written on reload
+(defonce app-state (atom {:day "Monday" :interval 24
+                          :usage (roster/building-usage-map)
+                          :room-count (roster/room-count)
+                          :running false
+                          :interval-id nil}))
+
+(defn update-map []
+  (let [{:keys [day interval usage room-count]} @app-state]
+    (doseq [b buildings]
+      (let [n (get-in usage [day b interval])
+            percent (/ n (room-count b))]
+        (set! (.-fillOpacity
+                (.-style (.getElementById svg (str "bldg_" b)))) percent)
+        (set! (.-textContent(.getElementById svg (str "group_" b)))
+              (str (int (* 100 (min 1.0 percent))) "%"))
+        ))))
+
+(defn update-atom [evt]
+  (do
+    (swap! app-state assoc :day (.-value (dom/getElement "day"))
+           :interval (quot (utils/to-minutes (.-value (dom/getElement "time"))) 15))
+    (update-map)))
+
+(defn display-day-time [day interval]
+  (set! (.-innerHTML (dom/getElement "show"))
+                     (str day " " (utils/to-am-pm (* 15 interval)))))
+
+(declare advance-time)
+
+(defn play-button [evt]
+  (if (@app-state :running)
+    (do
+      (.clearInterval js/window (@app-state :interval-id))
+      (swap! app-state assoc :running false :interval-id nil)
+      (set! (.-value (dom/getElement "time")) (utils/to-am-pm (* 15 (@app-state :interval))))
+      (set! (.-className (dom/getElement "edit")) "visible")
+      (set! (.-className (dom/getElement "show")) "hidden")
+      (set! (.-src (dom/getElement "play")) "images/play.svg"))
+    (do
+      (swap! app-state assoc :running true :interval-id (.setInterval js/window advance-time 1500))
+      (display-day-time (@app-state :day) (@app-state :interval))
+      (set! (.-className (dom/getElement "edit")) "hidden")
+      (set! (.-className (dom/getElement "show")) "visible")
+      (set! (.-src (dom/getElement "play")) "images/pause.svg"))))
+
+(defn advance-time [dom-time-stamp]
+  (let [{:keys [day lastUpdate interval]} @app-state
+        next-interval (inc interval)]
+    (if (>= next-interval 96)
+      (play-button nil)
+      (do
+        (update-map)
+        (swap! app-state assoc :interval next-interval)
+        (display-day-time day next-interval)))))
+
+(do
+  (events/listen (dom/getElement "time") "change" update-atom)
+  (events/listen (dom/getElement "day") "change" update-atom)
+  (events/listen (dom/getElement "play") "click" play-button))
+
+
+(defn on-js-reload []
+  ;; optionally touch your app-state to force rerendering depending on
+  ;; your application
+  ;; (swap! app-state update-in [:__figwheel_counter] inc)
+)</pre>
+  </section>
+  
+  <section data-type="sect2">
+  <h1>File <em>index.html</em></h1>
+  
+<pre data-type="programlisting" data-code-language="html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;link href="css/style.css" rel="stylesheet" type="text/css"&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id="app"&gt;
+      &lt;h2&gt;Building Usage&lt;/h2&gt;
+      &lt;p class="bigLabel"&gt;
+      &lt;span id="edit" class="visible"&gt;
+      &lt;select id="day" class="bigLabel"&gt;
+        &lt;option value="Monday"&gt;Monday&lt;/option&gt;
+        &lt;option value="Tuesday"&gt;Tuesday&lt;/option&gt;
+        &lt;option value="Wednesday"&gt;Wednesday&lt;/option&gt;
+        &lt;option value="Thursday"&gt;Thursday&lt;/option&gt;
+        &lt;option value="Friday"&gt;Friday&lt;/option&gt;
+        &lt;option value="Saturday"&gt;Saturday&lt;/option&gt;
+        &lt;option value="Sunday"&gt;Sunday&lt;/option&gt;
+      &lt;/select&gt;
+
+      &lt;input class="bigLabel" id="time" value="6:00 AM" size="8"/&gt;
+      &lt;/span&gt;
+      
+      &lt;span id="show" class="hidden"&gt;
+      &lt;/span&gt;
+      
+      &lt;img src="images/play.svg" width="45" height="45" alt="play" id="play"/&gt;
+     &lt;/p&gt;
+     
+     &lt;div&gt;
+      &lt;object id="campus_map" data="images/campus_map.svg"
+        type="image/svg+xml" style="border: 1px solid gray"&gt;
+        &lt;p&gt;Alas, your browser can not load this SVG file.&lt;/p&gt;
+      &lt;/object&gt;
+     &lt;/div&gt;
+    &lt;script src="js/compiled/building_usage.js" type="text/javascript"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+  </section>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION06-ET03">
+  <h1>Solution 6-3</h1>
+  <section data-type="sect2">
+  <h1>File <em>core.cljs</em></h1>
+
+<pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always building_usage2.core
+    (:require [building_usage2.roster :as roster]
+              [building_usage2.utils :as utils]
+              [goog.dom :as dom]
+              [goog.events :as events]))
+
+(enable-console-print!)
+
+(def days ["Monday" "Tuesday" "Wednesday" "Thursday"
+           "Friday" "Saturday" "Sunday"])
+
+(def buildings ["A" "B" "C" "D" "FLD" "GYM"
+               "M" "N" "P"])
+
+(def building-totals (roster/room-count))
+
+(def usage (roster/building-usage-map))
+
+(defn make-labels [items]
+  "Intersperse blank labels between the labels for the hours so that
+  the number of labels equals the number of data points."
+  (let [result (reduce (fn [acc item] (apply conj acc [item "" "" ""])) [] items)]
+    result))
+
+(defn create-chart [data]
+  (let [ctx (.getContext (dom/getElement "chart") "2d")
+        chart (js/Chart. ctx)
+        ;; Note: everything needs to be converted to JavaScript
+        ;; objects and arrays to make Chartjs happy.
+        graph-info #js {:labels (clj->js (make-labels (range 0 24)))
+                        :datasets #js [ #js {:label "Usage"
+                                       :fillColor "rgb(0, 128, 0)"
+                                       :strokeColor "rgb(0, 128, 0)"
+                                        :highlightStroke "rgb(255, 0,0)"
+                                       :data (clj->js data)}]}
+
+        ;; Override default animation, and set scale
+        ;; of y-axis to go from 0-100 in all cases.
+        options #js {:animation false
+                     :scaleBeginAtZero true
+                     :scaleShowGridLines true
+                     :scaleGridLineColor "rgba(0,0,0,.05)"
+                     :scaleGridLineWidth 1
+                     :scaleShowVerticalLines true
+                     :scaleOverride true
+                     :scaleSteps 10
+                     :scaleStepWidth 10
+                     :scaleStartValue 0}]
+    (.Bar chart graph-info options)))
+
+(defn to-percent [counts building]
+  "Convert counts of rooms occupied to a percentage;
+  max out at 100%"
+  (let [total (get building-totals building)]
+    (map (fn [item] (min 100 (* 100 (/ item total)))) counts)))
+
+(defn update-graph [evt]
+  (let [day (.-value (dom/getElement "day"))
+        building (.-value (dom/getElement "building"))
+        data (if (and (not= "" day) (not= "" building))
+               (to-percent (get-in usage [day building]) building)
+               nil)]
+    (if (not (nil? data)) (create-chart data) nil)))
+
+(do
+  (events/listen (dom/getElement "day") "change" update-graph)
+  (events/listen (dom/getElement "building") "change" update-graph))
+
+(defn on-js-reload []
+  ;; optionally touch your app-state to force rerendering depending on
+  ;; your application
+  ;; (swap! app-state update-in [:__figwheel_counter] inc)
+)</pre>
+  </section>
+  
+  <section data-type="sect2">
+  <h1>File <em>index.html</em></h1>
+  
+<pre data-type="programlisting" data-code-language="html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;link href="css/style.css" rel="stylesheet" type="text/css"/&gt;
+    &lt;script type="text/javascript" src="Chart.min.js"&gt;&lt;/script&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id="app"&gt;
+      &lt;h2&gt;Building Usage&lt;/h2&gt;
+      &lt;p class="bigLabel"&gt;
+        &lt;select id="day" class="bigLabel"&gt;
+          &lt;option value=""&gt;Choose a day&lt;/option&gt;
+          &lt;option value="Monday"&gt;Monday&lt;/option&gt;
+          &lt;option value="Tuesday"&gt;Tuesday&lt;/option&gt;
+          &lt;option value="Wednesday"&gt;Wednesday&lt;/option&gt;
+          &lt;option value="Thursday"&gt;Thursday&lt;/option&gt;
+          &lt;option value="Friday"&gt;Friday&lt;/option&gt;
+          &lt;option value="Saturday"&gt;Saturday&lt;/option&gt;
+          &lt;option value="Sunday"&gt;Sunday&lt;/option&gt;
+        &lt;/select&gt;
+
+        Building
+        &lt;select id="building" class="bigLabel"&gt;
+          &lt;option value=""&gt;--&lt;/option&gt;
+          &lt;option value="A"&gt;A&lt;/option&gt;
+          &lt;option value="B"&gt;B&lt;/option&gt;
+          &lt;option value="C"&gt;C&lt;/option&gt;
+          &lt;option value="D"&gt;D&lt;/option&gt;
+          &lt;option value="FLD"&gt;FLD&lt;/option&gt;
+          &lt;option value="GYM"&gt;Gym&lt;/option&gt;
+          &lt;option value="M"&gt;M&lt;/option&gt;
+          &lt;option value="N"&gt;N&lt;/option&gt;
+          &lt;option value="P"&gt;P&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/p&gt;
+
+      &lt;canvas id="chart" width="600" height="300"&gt;&lt;/canvas&gt;
+
+      &lt;script src="js/compiled/building_usage2.js" type="text/javascript"&gt;&lt;/script&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+</section>
+</section>
+
+<section data-type="sect1" id="SOLUTION07-ET01">
+  <h1>Solution 7-1</h1>
+<pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always proto.core
+    (:require))
+
+(enable-console-print!)
+
+(defprotocol SpecialNumber
+    (plus [this b])
+    (minus [this b])
+    (mul [this b])
+    (div [this b])
+    (canonical [this]))
+
+(defn gcd [mm nn]
+  (let [m (js/Math.abs mm)
+        n (js/Math.abs nn)]
+    (cond
+      (= m n) m
+      (> m n) (recur (- m n) n)
+      :else (recur m (- n m)))))
+
+(defrecord Rational [num denom]
+
+  Object
+  (toString [r] (str (:num r) "/" (:denom r)))
+
+  SpecialNumber
+
+  (canonical [r]
+    (let [d (if (>= (:denom r) 0) (:denom r) (- (:denom r)))
+          n (if (>= (:denom r) 0) (:num r) (- (:num r)))
+          g (if (or (zero? n) (zero? d)) 1 (gcd n d))]
+      (if-not (= g 0)
+        (Rational. (/ n g) (/ d g))
+        r)))
+
+  (plus [this r2]
+    (let [{n1 :num d1 :denom} this
+          {n2 :num d2 :denom} r2
+          n (+ (* n1 d2) (* n2 d1))
+          d (* d1 d2)]
+      (println n1 d1 n2 d2 n d)
+      (if (= d1 d2)
+        (canonical (Rational. (+ n1 n2) d1))
+        (canonical (Rational. n d)))))
+
+  (minus [r1 r2] (plus r1 (Rational. (- (:num r2)) (:denom r2))))
+
+  (mul [r1 r2] (canonical (Rational. (* (:num r1) (:num r2))
+                                     (* (:denom r1) (:denom r2)))))
+
+  (div [r1 r2] (canonical (Rational. (* (:num r1) (:denom r2))
+                                     (* (:denom r1) (:num r2))))))</pre>
+
+  </section>
+
+  <section data-type="sect1" id="SOLUTION07-ET02">
+  <h1>Solution 7-2</h1>
+  <pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always proto.core)
+
+(enable-console-print!)
+
+(defprotocol SpecialNumber
+  (plus [this b])
+  (minus [this b])
+  (mul [this b])
+  (div [this b])
+  (canonical [this]))
+
+;; code for duration and rational not duplicated
+
+(defrecord Complex [re im]
+    Object
+    (toString [c]
+        (let [{:keys [re im]} c]
+            (str (if (zero? re) "" re)
+                 (if-not (zero? im)
+                     ; note: the order of the conditions here
+                     ; is absoutely crucial in order to get the
+                     ; leading minus sign
+                     (str (cond
+                              (&lt; im 0) "-"
+                              (zero? re) ""
+                              :else "+")
+                          (js/Math.abs im) "i")))))
+
+    SpecialNumber
+    (canonical [c] c)
+
+    (plus [this other]
+        (Complex. (+ (:re this) (:re other)) (+ (:im this) (:im other))))
+
+    (minus [this other]
+        (Complex. (- (:re this) (:re other)) (- (:im this) (:im other))))
+
+    (mul [this other]
+        ; better living through destructuring
+        (let [{a :re b :im} this
+              {c :re d :im} other]
+          (Complex. (- (* a c) (* b d)) (+ (* b c) (* a d)))))
+
+    (div [this other]
+        (let [{a :re b :im} this
+              {c :re d :im} other
+              denom (+ (* c c) (* d d))]
+              denom (+ (* c c) (* d d))]
+          (println a b c d denom)
+          (Complex. (/ (+ (* a c) (* b d)) denom) (/ (- (* b c) (* a d)) denom)))))</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION07-ET03">
+  <h1>Solution 7-3</h1>
+  <pre data-type="programlisting" data-code-language="clojurescript">(ns ^ :figwheel-always test.test-cases
+  (:require-macros [cljs.test :refer [deftest is are]])
+  (:require [cljs.test :as t]
+            [proto.core :as p]))
+
+(deftest duration1
+  (is (= (p/canonical (p/Duration. 3 84)) (p/Duration. 4 24))))
+
+(deftest duration-str
+  (are [m1 s1 expected]
+    (= (str (p/Duration. m1 s1) expected))
+    1 10  "1  10"
+    1 9 "1  09"
+    1 60 "2  00"
+    3 145 "5  25"
+    0 0 "0  00"))
+
+(deftest gcd-test
+  (are [x y] (= x y)
+             (p/gcd 3 5) 1
+             (p/gcd 12 14) 2
+             (p/gcd 35 55) 5))
+
+(deftest rational-plus
+  (are [x y z]
+    (let [[a b] x
+          [c d] y
+          [rn rd] z]
+      (= (p/plus (p/Rational. a b) (p/Rational. c d)) (p/Rational. rn rd)))
+    [1 2] [1 3] [5 6]
+    [2 8] [3 12] [1 2]
+    [0 4] [0 5] [0 20]
+    [1 0] [1 0] [2 0]))
+
+(deftest rational-minus
+  (are [x y z]
+    (let [[a b] x
+          [c d] y
+          [rn rd] z]
+      (= (p/minus (p/Rational. a b) (p/Rational. c d)) (p/Rational. rn rd)))
+    [6 8] [6 12] [1 4]
+    [1 4] [3 4] [-1 2]
+    [1 4] [1 4] [0 4]))
+
+(deftest rational-multiply
+  (are [x y z]
+    (let [[a b] x
+          [c d] y
+          [rn rd] z]
+      (= (p/mul (p/Rational. a b) (p/Rational. c d)) (p/Rational. rn rd)))
+    [1 3] [1 4] [1 12]
+    [3 4] [4 3] [1 1]))
+
+(deftest rational-divide
+  (are [x y z]
+    (let [[a b] x
+          [c d] y
+          [rn rd] z]
+      (= (p/div (p/Rational. a b) (p/Rational. c d)) (p/Rational. rn rd)))
+    [1 3] [1 4] [4 3]
+    [3 4] [4 3] [9 16]))
+
+(deftest complex-str
+  (are [r i result]
+    (= (str (p/Complex. r i)) result)
+  3 7 "3+7i"
+  3 -7 "3-7i"
+  -3 7 "-3+7i"
+  -3 -7 "-3-7i"
+  0 7 "7i"
+  3 0 "3"))
+
+(deftest complex-math
+  (are [r1 i1 f r2 i2 r3 i3]
+    (= (f (p/Complex. r1 i1) (p/Complex. r2 i2)) (p/Complex. r3 i3))
+     1 2  p/plus  3 4  4 6
+     1 -2  p/plus  -3 4 -2 2
+     1 2  p/minus  3 4  -2 -2
+     1 2  p/mul  3 4  -5 10
+     0 2  p/mul  3 -4  8 6
+     3 4  p/div  1 2  2.2 -0.4
+     1 -2  p/div  3 -4  0.44 -0.08))</pre>
+  </section>
+  
+  <section data-type="sect1" id="SOLUTION08-ET00A">
+  <h1>Sample core.async Program 1</h1>
+  <pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always async1.core
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+    (:require [cljs.core.async
+               :refer  [&lt;! >! timeout alts! chan close!]]))
+
+(enable-console-print!)
+
+(defn on-js-reload [])
+
+(def annie (chan))
+(def brian (chan))
+
+(defn annie-send []
+  (go (loop [n 5]
+           (println "Annie:" n "-> Brian")
+           (>! brian n)
+           (if (pos? n) (recur (dec n)) nil))))
+
+(defn annie-send []
+  (go (loop [n 5]
+           (println "Annie:" n "-> Brian")
+           (>! brian n)
+           (when (pos? n) (recur (dec n))))))
+
+(defn annie-receive []
+  (go-loop []
+           (let [reply (&lt;! brian)]
+             (println "Annie:" reply "&lt;- Brian")
+             (if (pos? reply)
+               (recur)
+               (close! annie)))))
+
+(defn brian-send []
+  (go-loop [n 5]
+           (println "Brian:" n "-> Annie")
+           (>! annie n)
+           (when (pos? n) (recur (dec n)))))
+
+(defn brian-receive []
+  (go-loop []
+           (let [reply (&lt;! annie)]
+             (println "Brian:" reply "&lt;- Annie")
+             (if (pos? reply)
+               (recur)
+               (close! brian)))))
+
+(defn async-test []
+  (do
+    (println "Starting...")
+    (annie-send)
+    (annie-receive)
+    (brian-send)
+    (brian-receive)))
+
+</pre>
+  </section>
+  
+  
+  <section data-type="sect1" id="SOLUTION08-ET00B">
+  <h1>Sample core.async Program 2</h1>
+  
+  <pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always async2.core
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+    (:require [cljs.core.async :as a
+               :refer  [&lt;! >! timeout alts! chan close!]]))
+
+(enable-console-print!)
+
+(defn on-js-reload [])
+
+(defn decrement! [[from-str from-chan] [to-str to-chan] &amp; [start-value]]
+  (go-loop [n (or start-value (dec (&lt;! from-chan)))]
+           (println from-str ":" n "->" to-str)
+           (>! to-chan n)
+           (when-let [reply (&lt;! from-chan)]
+             (println from-str ":" reply "&lt;-" to-str)
+             (if (pos? reply)
+               (recur (dec reply))
+               (do
+                 (close! from-chan)
+                 (close! to-chan)
+                 (println "Finished"))))))
+
+(defn async-test []
+  (let [annie (chan)
+        brian (chan)]
+    (decrement! ["Annie" annie] ["Brian" brian] 8)
+    (decrement! ["Brian" brian] ["Annie" annie])))</pre>
+  </section>
+
+  <section data-type="sect1" id="SOLUTION08-ET01">
+  <h1>Solution 8-1</h1>
+  <p>This solution is split into two files: <em>core.cljs</em> and <em>utils.cljs</em></p>
+  
+    <section data-type="sect2" id="SOLUTION08-ET01A">
+    <h2>File core.cljs</h2>
+  <pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always cardgame.core
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [cljs.core.async
+             :refer  [&lt;! >! timeout alts! chan close! put!]]
+            [cardgame.utils :as utils]))
+
+(enable-console-print!)
+
+(def max-rounds 50) ;; max # of rounds per game
+
+;; create a channel for each player and the dealers
+
+(def player1 (chan))
+(def player2 (chan))
+(def dealer (chan))
+
+(defn on-js-reload [])
+
+;; I have added a player-name for debug output;
+;; it's not needed for the program to work.
+
+(defn player-process
+  "Arguments are channel, channel name, and initial
+  set of cards. Players either give the dealer cards
+  or receive cards from her. They send their player
+  number back to the dealer so that she can distinguish
+  the inputs. The :show command is for debugging;
+  the :card-count is for stopping a game after a
+  given number of rounds, and the :quit command finishes the loop."
+  [player player-name init-cards]
+  (do
+    (println "Starting"  player-name "with" init-cards)
+    (go (loop [my-cards init-cards]
+             (let [[message args] (&lt;! player)]
+               (condp = message
+                 :give (do
+                         (println player-name
+                                  "has" my-cards
+                                  "sending dealer" (take args my-cards))
+                         (>! dealer [player-name (take args my-cards)])
+                         (recur (vec (drop args my-cards))))
+                 :receive (do
+                            (println player-name "receives" args "add to" my-cards)
+                            (>! dealer "Received cards")
+                            (recur (apply conj my-cards args)))
+                 :show (do (println my-cards) (recur my-cards))
+                 :card-count (do
+                               (>! dealer [player-name (count my-cards)])
+                               (recur my-cards))
+                 :quit nil))))))
+
+(defn determine-game-winner
+  "If either of the players is out of cards, the other player wins."
+  [card1 card2]
+  (cond
+    (empty? card1) "Player 1"
+    (empty? card2) "Player 2"
+    :else nil))
+
+(defn make-new-pile
+  "Convenience function to join the current pile
+  plus the players' cards into a new pile."
+  [pile card1 card2]
+  (apply conj (apply conj pile card1) card2))
+
+(defn put-all!
+  "Convenience function to send same message to
+  all players. The (doall) is necessary to force
+  evaluation."
+  [info]
+  (doall (map (fn [p] (put! p info)) [player1 player2])))
+
+(defn arrange
+  "Since we can't guarantee which order the cards come in,
+  we arrange the dealer's messages so that player 1's card(s)
+  always precede player 2's card(s)"
+  [[pa ca] [pb cb]]
+  (if (= pa "Player 1") [ca cb] [cb ca]))
+
+(defn do-battle
+  "Returns a vector giving the winner (if any) and the
+  new pile of cards, given the current pile, the players' cards,
+  and the number of rounds played.
+  If someone's card is empty, the other person is the winner.
+  If the number of rounds is at the maximum, the person with
+     the smaller number of cards wins.
+  If one player has a higher card, the other player has
+  to take all the cards (returning an empty pile); if they
+  match, the result is the pile plus the cards"
+  [pile card1 card2 n-rounds]
+  (let [c1 (utils/value (last card1))
+        c2 (utils/value (last card2))
+        game-winner (determine-game-winner card1 card2)
+        new-pile (make-new-pile pile card1 card2)]
+    (println (utils/text (last card1)) "vs." (utils/text (last card2)))
+    (when-not game-winner
+        (cond
+        (> c1 c2) (put! player2 [:receive new-pile])
+        (&lt; c1 c2) (put! player1 [:receive new-pile])))
+      [game-winner (if (= c1 c2) new-pile (vector))]))
+
+(defn play-game
+  "The game starts by dividing the shuffled deck and
+  gives each player half.
+  Pre-battle state: ask each player to give a card
+    (or 3 cards if the pile isn't empty)
+  Battle state: wait for each player to send cards and evalute.
+  Post-battle: wait for person who lost hand (if not a tie)
+    to receive cards
+  Long-game: Too many rounds. Winner is person with most cards"
+  []
+  (let [deck (utils/short-deck)
+        half (/ (count deck) 2)]
+    (player-process player1 "Player 1" (vec (take half deck)))
+    (player-process player2 "Player 2" (vec (drop half deck)))
+    (go (loop [pile []
+               state :pre-battle
+               n-rounds 1]
+             (condp = state
+               :pre-battle (do
+                             (println "** Starting round" n-rounds)
+                             (put-all! [:give (if (empty? pile) 1 3)])
+                             (recur pile :battle n-rounds))
+
+               :battle (let [d1 (&lt;! dealer) ;; block until
+                             d2 (&lt;! dealer) ;; both players send cards
+                             [card1 card2] (arrange d1 d2)
+                             [game-winner new-pile] (do-battle pile card1 card2 n-rounds)]
+                         (&lt;! (timeout 300))
+                         (if-not game-winner
+                           (recur new-pile :post-battle n-rounds)
+                           (do
+                             (put-all! [:quit nil])
+                             (println "Winner:" game-winner))))
+
+               :post-battle (do
+                              ;; wait until player picks up cards
+                              (when (empty? pile) (&lt;! dealer))
+                              (if (&lt; n-rounds max-rounds)
+                                (recur pile :pre-battle (inc n-rounds))
+                                (do
+                                  (put-all! [:card-count nil])
+                                  (recur pile :long-game 0))))
+               :long-game (let [[pa na] (&lt;! dealer)
+                                [pb nb] (&lt;! dealer)]
+                            (put-all! [:quit nil])
+                            (println pa "has" na "cards.")
+                            (println pb "has" nb "cards.")
+                            (println "Winner:" (cond
+                                                 (&lt; na nb) pa
+                                                 (> na nb) pb
+                                                 :else "tied"))))))))</pre>
+     </section>
+     
+    <section data-type="sect2" id="SOLUTION08-ET01B">
+    <h2>File utils.cljs</h2>
+    <pre data-type="programlisting" data-code-language="clojurescript">(ns ^:figwheel-always cardgame.utils
+  (:require))
+
+(def suits ["clubs" "diamonds" "hearts" "spades"])
+(def names ["Ace" "2" "3" "4" "5" "6" "7" "8" "9" "10"
+            "Jack" "Queen" "King"])
+
+;; If there was no card at all (nil)
+;; return nil, otherwise aces are high.
+(defn value [card]
+  (let [v (when-not (nil? card) (mod card 13))]
+    (if (= v 0) 13 v)))
+
+(defn text [card]
+  (let [suit (quot card 13)
+        base (mod card 13)]
+    (if (nil? card)
+      "nil"
+      (str (get names base) " of " (get suits suit)))))
+
+(defn full-deck []
+  (shuffle (range 0 52)))
+
+;; give a short deck of Ace to 4 in clubs and diamonds only
+;; for testing purposes
+
+(defn short-deck []
+  (shuffle (list 0 1 2 3 4 5 13 14 15 16 17 18)))</pre>
+      </section>
+  </section>
+</section>
